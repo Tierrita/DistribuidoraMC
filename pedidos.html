@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedidos - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS para exportar Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="pedidos.html" class="active">Pedidos</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+            <button class="cart-button" id="cartButton">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </button>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-shopping-cart"></i> Gestión de Pedidos</h1>
+            <p>Arma nuevos pedidos y consulta el historial completo</p>
+        </div>
+    </section>
+
+    <!-- Sección de Pedidos -->
+    <section class="orders">
+        <div class="container">
+            <!-- Tabs de Navegación -->
+            <div class="orders-tabs">
+                <button class="tab-btn active" data-tab="nuevo-pedido">
+                    <i class="fas fa-cart-plus"></i> Nuevo Pedido
+                </button>
+                <button class="tab-btn" data-tab="historial">
+                    <i class="fas fa-list"></i> Historial de Pedidos
+                </button>
+            </div>
+
+            <!-- TAB: NUEVO PEDIDO -->
+            <div id="tabNuevoPedido" class="tab-content active">
+                <!-- Layout POS: 2 Columnas -->
+                <div class="pos-layout">
+                    <!-- COLUMNA IZQUIERDA: Productos -->
+                    <div class="pos-products-section">
+                        <!-- Controles de Pedidos -->
+                        <div class="orders-controls">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="orderSearchInput" placeholder="Buscar producto...">
+                            </div>
+                            <div class="filter-buttons" id="orderFilterButtons">
+                                <button class="filter-btn active" data-category="todos">
+                                    <i class="fas fa-th"></i> Todos
+                                </button>
+                                <!-- Los filtros dinámicos se cargarán aquí -->
+                            </div>
+                        </div>
+
+                        <!-- Grid de Productos -->
+                        <div class="products-order-grid" id="productsOrderGrid">
+                            <!-- Los productos se cargarán dinámicamente -->
+                        </div>
+
+                        <!-- Mensaje cuando no hay productos -->
+                        <div id="emptyOrderState" class="empty-state" style="display: none;">
+                            <i class="fas fa-box-open"></i>
+                            <h3>No hay productos disponibles</h3>
+                            <p>Agrega productos en la sección de inventario primero</p>
+                            <a href="inventario.html" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Ir a Inventario
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- COLUMNA DERECHA: Carrito Activo -->
+                    <div class="pos-cart-section">
+                        <div class="pos-cart-sticky">
+                            <div class="pos-cart-header">
+                                <h3><i class="fas fa-shopping-cart"></i> Pedido Actual</h3>
+                                <button class="btn-clear-mini" onclick="clearCartFromPos()" id="btnClearCartPos">
+                                    <i class="fas fa-trash"></i> Vaciar
+                                </button>
+                            </div>
+
+                            <!-- Items del carrito -->
+                            <div class="pos-cart-items" id="posCartItems">
+                                <div class="pos-empty-cart">
+                                    <i class="fas fa-cart-arrow-down"></i>
+                                    <p>Agrega productos para comenzar</p>
+                                </div>
+                            </div>
+
+                            <!-- Totales -->
+                            <div class="pos-cart-summary">
+                                <div class="pos-summary-row">
+                                    <span>Subtotal:</span>
+                                    <strong id="posSubtotal">$0.00</strong>
+                                </div>
+                                <div class="pos-summary-row pos-total">
+                                    <span>Total:</span>
+                                    <strong id="posTotal">$0.00</strong>
+                                </div>
+                                <div class="pos-items-count">
+                                    <i class="fas fa-box"></i>
+                                    <span id="posItemsCount">0 productos</span>
+                                </div>
+                            </div>
+
+                            <!-- Botón de Checkout -->
+                            <button class="btn-checkout-pos" id="btnCheckoutPos" disabled>
+                                <i class="fas fa-check-circle"></i> Finalizar Pedido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB: HISTORIAL DE PEDIDOS -->
+            <div id="tabHistorial" class="tab-content">
+                <!-- Filtros del Historial -->
+                <div class="orders-history-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="historySearchInput" placeholder="Buscar por número de pedido o cliente...">
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-status="todos">
+                            <i class="fas fa-th"></i> Todos
+                        </button>
+                        <button class="filter-btn" data-status="pending">
+                            <i class="fas fa-clock"></i> Pendientes
+                        </button>
+                        <button class="filter-btn" data-status="completed">
+                            <i class="fas fa-check-circle"></i> Completados
+                        </button>
+                        <button class="filter-btn" data-status="cancelled">
+                            <i class="fas fa-times-circle"></i> Cancelados
+                        </button>
+                        <button class="btn btn-success" id="exportAllOrdersBtn" style="margin-left: auto;">
+                            <i class="fas fa-file-excel"></i> Exportar Todo a Excel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Lista de Pedidos -->
+                <div class="orders-history-grid" id="ordersHistoryGrid">
+                    <!-- Los pedidos se cargarán dinámicamente -->
+                </div>
+
+                <!-- Mensaje cuando no hay pedidos -->
+                <div id="emptyHistoryState" class="empty-state" style="display: none;">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No hay pedidos registrados</h3>
+                    <p>Los pedidos que realices aparecerán aquí</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal del Carrito -->
+    <div id="cartModal" class="modal cart-modal">
+        <div class="modal-content cart-modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-shopping-cart"></i> Carrito de Compras</h2>
+                <button class="modal-close" id="cartModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="cart-body">
+                <div id="cartItems" class="cart-items">
+                    <!-- Items del carrito se cargarán aquí -->
+                </div>
+                <div id="emptyCart" class="empty-cart" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Tu carrito está vacío</p>
+                </div>
+            </div>
+            <div class="cart-footer">
+                <div class="cart-total">
+                    <span>Total:</span>
+                    <span class="total-amount" id="cartTotal">$0.00</span>
+                </div>
+                <div class="cart-actions">
+                    <button class="btn btn-cancel" id="btnClearCart">
+                        <i class="fas fa-trash"></i> Vaciar Carrito
+                    </button>
+                    <button class="btn btn-primary" id="btnCheckout">
+                        <i class="fas fa-check"></i> Finalizar Pedido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Checkout -->
+    <div id="checkoutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> Finalizar Pedido</h2>
+                <button class="modal-close" id="checkoutModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="checkoutForm">
+                <div class="checkout-content">
+                    <!-- Resumen del Pedido -->
+                    <div class="order-summary">
+                        <h3>Resumen del Pedido</h3>
+                        <div id="checkoutItems" class="checkout-items">
+                            <!-- Items se cargarán aquí -->
+                        </div>
+                        <div class="checkout-total">
+                            <strong>Total:</strong>
+                            <strong id="checkoutTotal">$0.00</strong>
+                        </div>
+                    </div>
+
+                    <!-- Datos del Cliente -->
+                    <div class="customer-info">
+                        <h3>Datos del Cliente</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="customerName">Nombre Completo *</label>
+                                <input type="text" id="customerName" required placeholder="Juan Pérez" minlength="3" maxlength="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="customerPhone">Teléfono *</label>
+                                <input type="tel" id="customerPhone" required placeholder="011 4567-8900" pattern="[0-9\s\-\+\(\)]{7,20}" title="Ingrese un teléfono válido (7-20 dígitos)">
+                            </div>
+                            <div class="form-group">
+                                <label for="customerEmail">Email</label>
+                                <input type="email" id="customerEmail" placeholder="juan@ejemplo.com" maxlength="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="customerAddress">Dirección de Entrega *</label>
+                                <input type="text" id="customerAddress" required placeholder="Av. Siempre Viva 123" minlength="5" maxlength="150">
+                            </div>
+                            <div class="form-group full-width">
+                                <label for="orderNotes">Notas del Pedido</label>
+                                <textarea id="orderNotes" rows="3" placeholder="Comentarios adicionales..." maxlength="500"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="btnCancelCheckout">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check-circle"></i> Confirmar Pedido
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación -->
+    <div id="confirmationModal" class="modal">
+        <div class="modal-content confirmation-content">
+            <div class="confirmation-success">
+                <i class="fas fa-check-circle"></i>
+                <h2>¡Pedido Confirmado!</h2>
+                <p>Tu pedido ha sido registrado exitosamente</p>
+                <div class="order-number">
+                    <strong>Número de Pedido:</strong>
+                    <span id="orderNumber">#0000</span>
+                </div>
+                <p class="confirmation-message">
+                    Te contactaremos pronto para coordinar la entrega.
+                </p>
+                <div class="confirmation-actions">
+                    <button class="btn btn-primary" id="btnNewOrder">
+                        <i class="fas fa-plus"></i> Hacer Nuevo Pedido
+                    </button>
+                    <button class="btn btn-secondary" id="btnViewOrders">
+                        <i class="fas fa-list"></i> Ver Mis Pedidos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botón WhatsApp Flotante -->
+    <a href="https://wa.me/5491145678900" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="contacto.html">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p><i class="fas fa-phone"></i> (011) 4567-8900</p>
+                    <p><i class="fas fa-envelope"></i> info@distribuidoramc.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="sample-data.js"></script>
+    <script src="script.js"></script>
+    <script src="inventory.js"></script>
+    <script src="orders.js"></script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="inventario.html" class="active">Inventario</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+            <a href="pedidos.html" class="cart-button" id="cartButton">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-boxes-stacked"></i> Gestión de Inventario</h1>
+            <p>Control completo de categorías, productos, stock y precios</p>
+        </div>
+    </section>
+
+    <!-- Sección de Inventario -->
+    <section class="inventory">
+        <div class="container">
+            <!-- Tabs de Navegación -->
+            <div class="inventory-tabs">
+                <button class="tab-btn active" data-tab="productos">
+                    <i class="fas fa-box"></i> Productos
+                </button>
+                <button class="tab-btn" data-tab="categorias">
+                    <i class="fas fa-tags"></i> Categorías
+                </button>
+            </div>
+
+            <!-- TAB: PRODUCTOS -->
+            <div id="tabProductos" class="tab-content active">
+                <!-- Controles del Inventario -->
+                <div class="inventory-controls">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar producto...">
+                    </div>
+                    <div class="filter-buttons" id="dynamicFilters">
+                        <!-- Los filtros se cargarán dinámicamente desde las categorías -->
+                    </div>
+                    <button class="btn-add-product" id="btnAddProduct">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                </div>
+
+            <!-- Estadísticas Rápidas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-boxes-stacked"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Total Productos</h4>
+                        <p class="stat-number" id="totalProducts">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stock-low">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Stock Bajo</h4>
+                        <p class="stat-number" id="lowStock">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stock-ok">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Stock Normal</h4>
+                        <p class="stat-number" id="normalStock">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon value">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Valor Total</h4>
+                        <p class="stat-number" id="totalValue">$0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Inventario -->
+            <div class="inventory-table-container">
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody">
+                        <!-- Los productos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mensaje cuando no hay productos -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <i class="fas fa-box-open"></i>
+                <h3>No hay productos en el inventario</h3>
+                <p>Agrega tu primer producto haciendo clic en el botón "Agregar Producto"</p>
+            </div>
+            </div>
+
+            <!-- TAB: CATEGORÍAS -->
+            <div id="tabCategorias" class="tab-content">
+                <div class="categories-header">
+                    <h2><i class="fas fa-tags"></i> Gestión de Categorías</h2>
+                    <button class="btn-add-product" id="btnAddCategory">
+                        <i class="fas fa-plus"></i> Agregar Categoría
+                    </button>
+                </div>
+
+                <!-- Grid de Categorías -->
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- Las categorías se cargarán dinámicamente -->
+                </div>
+
+                <!-- Mensaje cuando no hay categorías -->
+                <div id="emptyCategoriesState" class="empty-state" style="display: none;">
+                    <i class="fas fa-tags"></i>
+                    <h3>No hay categorías creadas</h3>
+                    <p>Agrega tu primera categoría para organizar tus productos</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal para Agregar/Editar Producto -->
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Agregar Producto</h2>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="productForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="productCode">Código</label>
+                        <input type="text" id="productCode" required placeholder="Ej: JAM001" maxlength="20">
+                    </div>
+                    <div class="form-group">
+                        <label for="productName">Nombre del Producto</label>
+                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium" maxlength="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategory">Categoría</label>
+                        <select id="productCategory" required>
+                            <option value="">Seleccionar...</option>
+                            <!-- Las categorías se cargarán dinámicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productPrice">Precio ($)</label>
+                        <input type="number" id="productPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="productStock">Stock (unidades)</label>
+                        <input type="number" id="productStock" min="0" max="999999" required placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="productMinStock">Stock Mínimo</label>
+                        <input type="number" id="productMinStock" min="0" max="99999" required placeholder="10">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="btnCancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar/Editar Categoría -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">Agregar Categoría</h2>
+                <button class="modal-close" id="categoryModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="categoryName">Nombre de la Categoría</label>
+                        <input type="text" id="categoryName" required placeholder="Ej: Jamones" maxlength="50">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="categoryIcon">Ícono (Font Awesome)</label>
+                        <input type="text" id="categoryIcon" required placeholder="Ej: fa-bacon" pattern="fa-.*" maxlength="30">
+                        <small>Busca íconos en: <a href="https://fontawesome.com/icons" target="_blank">fontawesome.com/icons</a></small>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="categoryColor">Color</label>
+                        <input type="color" id="categoryColor" value="#8B0000" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="categoryDescription">Descripción (opcional)</label>
+                        <textarea id="categoryDescription" rows="3" placeholder="Descripción de la categoría..." maxlength="200"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="btnCancelCategory">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Botón WhatsApp Flotante -->
+    <a href="https://wa.me/5491145678900" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="contacto.html">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p><i class="fas fa-phone"></i> (011) 4567-8900</p>
+                    <p><i class="fas fa-envelope"></i> info@distribuidoramc.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="sample-data.js"></script>
+    <script src="script.js"></script>
+    <script src="inventory.js"></script>
+    <script src="orders.js"></script>
+</body>
+</html>

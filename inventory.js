@@ -1,0 +1,924 @@
+// ============================================
+// SISTEMA DE INVENTARIO V2 - Distribuidora MC
+// Con Gestión de Categorías y Productos
+// ============================================
+
+// Variables globales
+let inventory = [];
+let categories = [];
+let editingProductId = null;
+let editingCategoryId = null;
+let currentTab = 'productos';
+
+// Contadores autoincrementales
+let nextProductId = 1;
+let nextCategoryId = 1;
+
+// Elementos del DOM - Productos
+const inventoryTableBody = document.getElementById('inventoryTableBody');
+const productModal = document.getElementById('productModal');
+const productForm = document.getElementById('productForm');
+const btnAddProduct = document.getElementById('btnAddProduct');
+const modalClose = document.getElementById('modalClose');
+const btnCancel = document.getElementById('btnCancel');
+const searchInput = document.getElementById('searchInput');
+const emptyState = document.getElementById('emptyState');
+const modalTitle = document.getElementById('modalTitle');
+const dynamicFilters = document.getElementById('dynamicFilters');
+
+// Elementos del DOM - Categorías
+const categoriesGrid = document.getElementById('categoriesGrid');
+const categoryModal = document.getElementById('categoryModal');
+const categoryForm = document.getElementById('categoryForm');
+const btnAddCategory = document.getElementById('btnAddCategory');
+const categoryModalClose = document.getElementById('categoryModalClose');
+const btnCancelCategory = document.getElementById('btnCancelCategory');
+const emptyCategoriesState = document.getElementById('emptyCategoriesState');
+const categoryModalTitle = document.getElementById('categoryModalTitle');
+
+// Elementos del DOM - Tabs
+const tabButtons = document.querySelectorAll('.tab-btn');
+const tabProductos = document.getElementById('tabProductos');
+const tabCategorias = document.getElementById('tabCategorias');
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadCategoriesFromStorage();
+    loadInventoryFromStorage();
+    
+    // Agregar categorías por defecto si está vacío
+    if (categories.length === 0) {
+        addDefaultCategories();
+    }
+    
+    // Agregar productos de ejemplo si está vacío
+    if (inventory.length === 0) {
+        addSampleProducts();
+    }
+    
+    renderInventory();
+    renderCategories();
+    updateStats();
+    loadCategoryFilters();
+    loadCategoryOptions();
+    initializeEventListeners();
+});
+
+// ============================================
+// ALMACENAMIENTO
+// ============================================
+
+function saveInventoryToStorage() {
+    localStorage.setItem('distributoraMC_inventory', JSON.stringify(inventory));
+    localStorage.setItem('distributoraMC_nextProductId', nextProductId.toString());
+    // Actualizar inventario global para pedidos
+    window.inventory = inventory;
+}
+
+function loadInventoryFromStorage() {
+    const stored = localStorage.getItem('distributoraMC_inventory');
+    if (stored) {
+        inventory = JSON.parse(stored);
+        window.inventory = inventory;
+    }
+    
+    // Cargar el siguiente ID o calcularlo
+    const storedNextId = localStorage.getItem('distributoraMC_nextProductId');
+    if (storedNextId) {
+        nextProductId = parseInt(storedNextId);
+    } else {
+        // Calcular el siguiente ID basado en el máximo existente
+        nextProductId = inventory.length > 0 
+            ? Math.max(...inventory.map(p => p.id)) + 1 
+            : 1;
+    }
+}
+
+function saveCategoriestoStorage() {
+    localStorage.setItem('distributoraMC_categories', JSON.stringify(categories));
+    localStorage.setItem('distributoraMC_nextCategoryId', nextCategoryId.toString());
+}
+
+function loadCategoriesFromStorage() {
+    const stored = localStorage.getItem('distributoraMC_categories');
+    if (stored) {
+        categories = JSON.parse(stored);
+    }
+    
+    // Cargar el siguiente ID o calcularlo
+    const storedNextId = localStorage.getItem('distributoraMC_nextCategoryId');
+    if (storedNextId) {
+        nextCategoryId = parseInt(storedNextId);
+    } else {
+        // Calcular el siguiente ID basado en el máximo existente
+        nextCategoryId = categories.length > 0 
+            ? Math.max(...categories.map(c => c.id)) + 1 
+            : 1;
+    }
+}
+
+// ============================================
+// CATEGORÍAS POR DEFECTO
+// ============================================
+
+function addDefaultCategories() {
+    categories = [
+        {
+            id: nextCategoryId++,
+            name: 'Jamones',
+            slug: 'jamones',
+            icon: 'fa-bacon',
+            color: '#8B0000',
+            description: 'Jamón cocido, crudo, serrano y más variedades premium'
+        },
+        {
+            id: nextCategoryId++,
+            name: 'Quesos',
+            slug: 'quesos',
+            icon: 'fa-cheese',
+            color: '#FFA500',
+            description: 'Selección de quesos nacionales e importados'
+        },
+        {
+            id: nextCategoryId++,
+            name: 'Embutidos',
+            slug: 'embutidos',
+            icon: 'fa-sausage',
+            color: '#DC143C',
+            description: 'Salames, chorizos, mortadelas y más'
+        },
+        {
+            id: nextCategoryId++,
+            name: 'Carnes Frías',
+            slug: 'carnes',
+            icon: 'fa-drumstick-bite',
+            color: '#CD5C5C',
+            description: 'Pavita, pollo, lomito y especialidades'
+        },
+        {
+            id: nextCategoryId++,
+            name: 'Productos Gourmet',
+            slug: 'gourmet',
+            icon: 'fa-bread-slice',
+            color: '#DAA520',
+            description: 'Patés, aceitunas, pickles y delicatessen'
+        },
+        {
+            id: nextCategoryId++,
+            name: 'Pescados y Mariscos',
+            slug: 'pescados',
+            icon: 'fa-fish',
+            color: '#4682B4',
+            description: 'Conservas y productos del mar'
+        }
+    ];
+    saveCategoriestoStorage();
+}
+
+// ============================================
+// PRODUCTOS DE EJEMPLO
+// ============================================
+
+function addSampleProducts() {
+    inventory = [
+        {
+            id: nextProductId++,
+            code: 'JAM001',
+            name: 'Jamón Cocido Premium',
+            category: 'jamones',
+            price: 2500,
+            stock: 45,
+            minStock: 20
+        },
+        {
+            id: nextProductId++,
+            code: 'QUE001',
+            name: 'Queso Parmesano',
+            category: 'quesos',
+            price: 3200,
+            stock: 15,
+            minStock: 10
+        },
+        {
+            id: nextProductId++,
+            code: 'EMB001',
+            name: 'Salame Milano',
+            category: 'embutidos',
+            price: 1800,
+            stock: 8,
+            minStock: 15
+        },
+        {
+            id: nextProductId++,
+            code: 'JAM002',
+            name: 'Jamón Crudo Serrano',
+            category: 'jamones',
+            price: 4500,
+            stock: 25,
+            minStock: 10
+        },
+        {
+            id: nextProductId++,
+            code: 'QUE002',
+            name: 'Queso Roquefort',
+            category: 'quesos',
+            price: 2800,
+            stock: 30,
+            minStock: 15
+        },
+        {
+            id: nextProductId++,
+            code: 'CAR001',
+            name: 'Pavita Natural',
+            category: 'carnes',
+            price: 1500,
+            stock: 5,
+            minStock: 20
+        }
+    ];
+    saveInventoryToStorage();
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function initializeEventListeners() {
+    // Tabs
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', handleTabChange);
+    });
+    
+    // Productos
+    btnAddProduct.addEventListener('click', openModalForAdd);
+    modalClose.addEventListener('click', closeProductModal);
+    btnCancel.addEventListener('click', closeProductModal);
+    productModal.addEventListener('click', (e) => {
+        if (e.target === productModal) closeProductModal();
+    });
+    productForm.addEventListener('submit', handleProductFormSubmit);
+    searchInput.addEventListener('input', handleSearch);
+    
+    // Categorías
+    btnAddCategory.addEventListener('click', openCategoryModalForAdd);
+    categoryModalClose.addEventListener('click', closeCategoryModal);
+    btnCancelCategory.addEventListener('click', closeCategoryModal);
+    categoryModal.addEventListener('click', (e) => {
+        if (e.target === categoryModal) closeCategoryModal();
+    });
+    categoryForm.addEventListener('submit', handleCategoryFormSubmit);
+}
+
+// ============================================
+// TABS
+// ============================================
+
+function handleTabChange(e) {
+    const targetTab = e.currentTarget.dataset.tab;
+    
+    // Actualizar botones
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    
+    // Actualizar contenido
+    tabProductos.classList.remove('active');
+    tabCategorias.classList.remove('active');
+    
+    if (targetTab === 'productos') {
+        tabProductos.classList.add('active');
+    } else {
+        tabCategorias.classList.add('active');
+    }
+    
+    currentTab = targetTab;
+}
+
+// ============================================
+// GESTIÓN DE CATEGORÍAS
+// ============================================
+
+function renderCategories() {
+    if (categories.length === 0) {
+        categoriesGrid.innerHTML = '';
+        emptyCategoriesState.style.display = 'flex';
+        return;
+    }
+    
+    emptyCategoriesState.style.display = 'none';
+    
+    categoriesGrid.innerHTML = categories.map(cat => {
+        const productCount = inventory.filter(p => p.category === cat.slug).length;
+        
+        return `
+            <div class="category-card" style="border-left: 4px solid ${cat.color}">
+                <div class="category-card-header">
+                    <div class="category-icon" style="background: ${cat.color}20; color: ${cat.color}">
+                        <i class="fas ${cat.icon}"></i>
+                    </div>
+                    <div class="category-info">
+                        <h3>${cat.name}</h3>
+                        <p class="category-slug">${cat.slug}</p>
+                    </div>
+                </div>
+                <p class="category-description">${cat.description || 'Sin descripción'}</p>
+                <div class="category-stats">
+                    <div class="category-stat">
+                        <i class="fas fa-box"></i>
+                        <span><strong>${productCount}</strong> productos</span>
+                    </div>
+                </div>
+                <div class="category-actions">
+                    <button class="btn-icon btn-edit" onclick="openCategoryModalForEdit(${cat.id})" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon btn-delete" onclick="deleteCategory(${cat.id})" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function openCategoryModalForAdd() {
+    editingCategoryId = null;
+    categoryModalTitle.textContent = 'Agregar Categoría';
+    categoryForm.reset();
+    document.getElementById('categoryColor').value = '#8B0000';
+    categoryModal.classList.add('active');
+}
+
+function openCategoryModalForEdit(categoryId) {
+    editingCategoryId = categoryId;
+    categoryModalTitle.textContent = 'Editar Categoría';
+    
+    const category = categories.find(c => c.id === categoryId);
+    if (category) {
+        document.getElementById('categoryName').value = category.name;
+        document.getElementById('categoryIcon').value = category.icon;
+        document.getElementById('categoryColor').value = category.color;
+        document.getElementById('categoryDescription').value = category.description || '';
+    }
+    
+    categoryModal.classList.add('active');
+}
+
+function closeCategoryModal() {
+    categoryModal.classList.remove('active');
+    categoryForm.reset();
+    editingCategoryId = null;
+}
+
+function handleCategoryFormSubmit(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('categoryName').value.trim();
+    const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
+    const icon = document.getElementById('categoryIcon').value.trim();
+    const color = document.getElementById('categoryColor').value;
+    const description = document.getElementById('categoryDescription').value.trim();
+    
+    // ===== VALIDACIONES =====
+    
+    // 1. Validar nombre no vacío
+    if (name.length === 0) {
+        showNotification('El nombre de la categoría no puede estar vacío', 'error');
+        document.getElementById('categoryName').focus();
+        return;
+    }
+    
+    // 2. Validar longitud del nombre
+    if (name.length > 50) {
+        showNotification('El nombre de la categoría es demasiado largo (máximo 50 caracteres)', 'error');
+        document.getElementById('categoryName').focus();
+        return;
+    }
+    
+    // 3. Validar nombre duplicado (solo para categorías nuevas o si cambió el nombre)
+    if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.name !== name) {
+        if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            showNotification('Ya existe una categoría con ese nombre', 'error');
+            document.getElementById('categoryName').focus();
+            return;
+        }
+    }
+    
+    // 4. Validar slug duplicado
+    if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.slug !== slug) {
+        if (categories.some(c => c.slug === slug)) {
+            showNotification('Ya existe una categoría similar con ese nombre', 'error');
+            document.getElementById('categoryName').focus();
+            return;
+        }
+    }
+    
+    // 5. Validar ícono no vacío
+    if (icon.length === 0) {
+        showNotification('Debes ingresar un ícono de Font Awesome', 'error');
+        document.getElementById('categoryIcon').focus();
+        return;
+    }
+    
+    // 6. Validar formato del ícono (debe empezar con fa-)
+    if (!icon.startsWith('fa-')) {
+        showNotification('El ícono debe empezar con "fa-" (ejemplo: fa-bacon)', 'error');
+        document.getElementById('categoryIcon').focus();
+        return;
+    }
+    
+    // 7. Validar longitud de descripción
+    if (description.length > 200) {
+        showNotification('La descripción es demasiado larga (máximo 200 caracteres)', 'error');
+        document.getElementById('categoryDescription').focus();
+        return;
+    }
+    
+    // ===== FIN VALIDACIONES =====
+    
+    const categoryData = {
+        name: name,
+        slug: slug,
+        icon: icon,
+        color: color,
+        description: description
+    };
+    
+    if (editingCategoryId) {
+        // Editar categoría existente
+        const index = categories.findIndex(c => c.id === editingCategoryId);
+        if (index !== -1) {
+            const oldSlug = categories[index].slug;
+            categories[index] = { ...categories[index], ...categoryData };
+            
+            // Actualizar productos que usan esta categoría
+            inventory.forEach(product => {
+                if (product.category === oldSlug) {
+                    product.category = slug;
+                }
+            });
+            
+            saveInventoryToStorage();
+            showNotification('Categoría actualizada correctamente', 'success');
+        }
+    } else {
+        // Agregar nueva categoría con ID autoincremental
+        const newCategory = {
+            id: nextCategoryId++,
+            ...categoryData
+        };
+        categories.push(newCategory);
+        showNotification('Categoría agregada correctamente', 'success');
+    }
+    
+    saveCategoriestoStorage();
+    renderCategories();
+    loadCategoryFilters();
+    loadCategoryOptions();
+    closeCategoryModal();
+}
+
+function deleteCategory(categoryId) {
+    const category = categories.find(c => c.id === categoryId);
+    if (!category) return;
+    
+    // Verificar si hay productos usando esta categoría
+    const productsInCategory = inventory.filter(p => p.category === category.slug).length;
+    
+    if (productsInCategory > 0) {
+        showNotification(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`, 'error');
+        return;
+    }
+    
+    if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
+        categories = categories.filter(c => c.id !== categoryId);
+        saveCategoriestoStorage();
+        renderCategories();
+        loadCategoryFilters();
+        loadCategoryOptions();
+        showNotification('Categoría eliminada correctamente', 'success');
+    }
+}
+
+// ============================================
+// CARGAR FILTROS DINÁMICOS
+// ============================================
+
+function loadCategoryFilters() {
+    dynamicFilters.innerHTML = `
+        <button class="filter-btn active" data-category="todos">
+            <i class="fas fa-th"></i> Todos
+        </button>
+        ${categories.map(cat => `
+            <button class="filter-btn" data-category="${cat.slug}">
+                <i class="fas ${cat.icon}"></i> ${cat.name}
+            </button>
+        `).join('')}
+    `;
+    
+    // Agregar event listeners a los nuevos botones
+    const filterButtons = document.querySelectorAll('#dynamicFilters .filter-btn');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', handleFilter);
+    });
+}
+
+function loadCategoryOptions() {
+    const select = document.getElementById('productCategory');
+    select.innerHTML = `
+        <option value="">Seleccionar...</option>
+        ${categories.map(cat => `
+            <option value="${cat.slug}">${cat.name}</option>
+        `).join('')}
+    `;
+}
+
+// ============================================
+// GESTIÓN DE PRODUCTOS
+// ============================================
+
+function openModalForAdd() {
+    editingProductId = null;
+    modalTitle.textContent = 'Agregar Producto';
+    productForm.reset();
+    productModal.classList.add('active');
+}
+
+function openModalForEdit(productId) {
+    editingProductId = productId;
+    modalTitle.textContent = 'Editar Producto';
+    
+    const product = inventory.find(p => p.id === productId);
+    if (product) {
+        document.getElementById('productCode').value = product.code;
+        document.getElementById('productName').value = product.name;
+        document.getElementById('productCategory').value = product.category;
+        document.getElementById('productPrice').value = product.price;
+        document.getElementById('productStock').value = product.stock;
+        document.getElementById('productMinStock').value = product.minStock;
+    }
+    
+    productModal.classList.add('active');
+}
+
+function closeProductModal() {
+    productModal.classList.remove('active');
+    productForm.reset();
+    editingProductId = null;
+}
+
+function handleProductFormSubmit(e) {
+    e.preventDefault();
+    
+    const productData = {
+        code: document.getElementById('productCode').value.trim().toUpperCase(),
+        name: document.getElementById('productName').value.trim(),
+        category: document.getElementById('productCategory').value,
+        price: parseFloat(document.getElementById('productPrice').value),
+        stock: parseInt(document.getElementById('productStock').value),
+        minStock: parseInt(document.getElementById('productMinStock').value)
+    };
+    
+    // ===== VALIDACIONES =====
+    
+    // 1. Validar código duplicado (solo para productos nuevos o si cambió el código)
+    if (!editingProductId || inventory.find(p => p.id === editingProductId)?.code !== productData.code) {
+        if (inventory.some(p => p.code === productData.code)) {
+            showNotification('Ya existe un producto con ese código', 'error');
+            document.getElementById('productCode').focus();
+            return;
+        }
+    }
+    
+    // 2. Validar nombre no vacío y longitud máxima
+    if (productData.name.length === 0) {
+        showNotification('El nombre del producto no puede estar vacío', 'error');
+        document.getElementById('productName').focus();
+        return;
+    }
+    
+    if (productData.name.length > 100) {
+        showNotification('El nombre del producto es demasiado largo (máximo 100 caracteres)', 'error');
+        document.getElementById('productName').focus();
+        return;
+    }
+    
+    // 3. Validar precio mayor a 0
+    if (productData.price <= 0) {
+        showNotification('El precio debe ser mayor a 0', 'error');
+        document.getElementById('productPrice').focus();
+        return;
+    }
+    
+    // 4. Validar precio máximo razonable
+    if (productData.price > 9999999) {
+        showNotification('El precio es demasiado alto', 'error');
+        document.getElementById('productPrice').focus();
+        return;
+    }
+    
+    // 5. Validar stock no negativo
+    if (productData.stock < 0) {
+        showNotification('El stock no puede ser negativo', 'error');
+        document.getElementById('productStock').focus();
+        return;
+    }
+    
+    // 6. Validar stock mínimo no negativo
+    if (productData.minStock < 0) {
+        showNotification('El stock mínimo no puede ser negativo', 'error');
+        document.getElementById('productMinStock').focus();
+        return;
+    }
+    
+    // 7. Validar que stock mínimo sea menor al stock actual (advertencia)
+    if (productData.minStock > productData.stock && productData.stock > 0) {
+        if (!confirm('El stock actual es menor al stock mínimo. ¿Deseas continuar de todos modos?')) {
+            return;
+        }
+    }
+    
+    // 8. Validar categoría seleccionada
+    if (!productData.category) {
+        showNotification('Debes seleccionar una categoría', 'error');
+        document.getElementById('productCategory').focus();
+        return;
+    }
+    
+    // ===== FIN VALIDACIONES =====
+    
+    if (editingProductId) {
+        // Editar producto existente
+        const index = inventory.findIndex(p => p.id === editingProductId);
+        if (index !== -1) {
+            inventory[index] = { ...inventory[index], ...productData };
+            showNotification('Producto actualizado correctamente', 'success');
+        }
+    } else {
+        // Agregar nuevo producto con ID autoincremental
+        const newProduct = {
+            id: nextProductId++,
+            ...productData
+        };
+        inventory.push(newProduct);
+        showNotification('Producto agregado correctamente', 'success');
+    }
+    
+    saveInventoryToStorage();
+    renderInventory();
+    renderCategories(); // Actualizar contadores
+    updateStats();
+    closeProductModal();
+}
+
+function deleteProduct(productId) {
+    const product = inventory.find(p => p.id === productId);
+    if (!product) return;
+    
+    if (confirm(`¿Estás seguro de eliminar "${product.name}"?`)) {
+        inventory = inventory.filter(p => p.id !== productId);
+        saveInventoryToStorage();
+        renderInventory();
+        renderCategories(); // Actualizar contadores
+        updateStats();
+        showNotification('Producto eliminado correctamente', 'success');
+    }
+}
+
+function renderInventory(productsToRender = inventory) {
+    if (productsToRender.length === 0) {
+        inventoryTableBody.innerHTML = '';
+        emptyState.style.display = 'flex';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    
+    inventoryTableBody.innerHTML = productsToRender.map(product => {
+        const stockStatus = getStockStatus(product.stock, product.minStock);
+        const category = categories.find(c => c.slug === product.category);
+        const categoryName = category ? category.name : product.category;
+        const categoryIcon = category ? category.icon : 'fa-box';
+        
+        return `
+            <tr data-id="${product.id}">
+                <td><span class="product-code">${product.code}</span></td>
+                <td><strong>${product.name}</strong></td>
+                <td>
+                    <span class="category-badge" style="background: ${category?.color}20; color: ${category?.color}">
+                        <i class="fas ${categoryIcon}"></i>
+                        ${categoryName}
+                    </span>
+                </td>
+                <td class="price">$${product.price.toFixed(2)}</td>
+                <td><strong>${product.stock}</strong> unidades</td>
+                <td>
+                    <span class="stock-badge ${stockStatus.class}">
+                        <i class="${stockStatus.icon}"></i>
+                        ${stockStatus.text}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-success" onclick="quickAddToOrder(${product.id})" title="Agregar al pedido" ${product.stock === 0 ? 'disabled' : ''}>
+                            <i class="fas fa-cart-plus"></i>
+                        </button>
+                        <button class="btn-icon btn-edit" onclick="openModalForEdit(${product.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="deleteProduct(${product.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+function getStockStatus(stock, minStock) {
+    if (stock === 0) {
+        return {
+            class: 'out-of-stock',
+            icon: 'fas fa-times-circle',
+            text: 'Sin Stock'
+        };
+    } else if (stock <= minStock) {
+        return {
+            class: 'low-stock',
+            icon: 'fas fa-exclamation-triangle',
+            text: 'Stock Bajo'
+        };
+    } else {
+        return {
+            class: 'in-stock',
+            icon: 'fas fa-check-circle',
+            text: 'Disponible'
+        };
+    }
+}
+
+function updateStats() {
+    const totalProducts = inventory.length;
+    const lowStock = inventory.filter(p => p.stock <= p.minStock && p.stock > 0).length;
+    const normalStock = inventory.filter(p => p.stock > p.minStock).length;
+    const totalValue = inventory.reduce((sum, p) => sum + (p.price * p.stock), 0);
+    
+    document.getElementById('totalProducts').textContent = totalProducts;
+    document.getElementById('lowStock').textContent = lowStock;
+    document.getElementById('normalStock').textContent = normalStock;
+    document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+}
+
+function handleSearch(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const filtered = inventory.filter(product => 
+        product.name.toLowerCase().includes(searchTerm) ||
+        product.code.toLowerCase().includes(searchTerm)
+    );
+    renderInventory(filtered);
+}
+
+function handleFilter(e) {
+    const category = e.currentTarget.dataset.category;
+    
+    // Actualizar botón activo
+    const filterButtons = document.querySelectorAll('#dynamicFilters .filter-btn');
+    filterButtons.forEach(btn => btn.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    
+    // Filtrar productos
+    if (category === 'todos') {
+        renderInventory(inventory);
+    } else {
+        const filtered = inventory.filter(p => p.category === category);
+        renderInventory(filtered);
+    }
+}
+
+// ============================================
+// FUNCIONES GLOBALES
+// ============================================
+
+window.openModalForEdit = openModalForEdit;
+window.deleteProduct = deleteProduct;
+window.openCategoryModalForEdit = openCategoryModalForEdit;
+window.deleteCategory = deleteCategory;
+
+// ============================================
+// AGREGAR AL PEDIDO DESDE INVENTARIO
+// ============================================
+
+function quickAddToOrder(productId) {
+    const product = inventory.find(p => p.id === productId);
+    
+    if (!product) {
+        showNotification('Producto no encontrado', 'error');
+        return;
+    }
+    
+    if (product.stock <= 0) {
+        showNotification('Producto sin stock', 'error');
+        return;
+    }
+    
+    // Obtener o inicializar el carrito
+    let cart = JSON.parse(localStorage.getItem('distributoraMC_cart') || '[]');
+    
+    // Verificar si el producto ya está en el carrito
+    const existingItem = cart.find(item => item.productId === productId);
+    
+    if (existingItem) {
+        const newQuantity = existingItem.quantity + 1;
+        if (newQuantity > product.stock) {
+            showNotification('No hay más stock disponible', 'error');
+            return;
+        }
+        existingItem.quantity = newQuantity;
+        showNotification(`+1 ${product.name} al pedido (Total: ${newQuantity})`, 'success');
+    } else {
+        cart.push({
+            productId: productId,
+            name: product.name,
+            code: product.code,
+            price: product.price,
+            quantity: 1,
+            category: product.category
+        });
+        showNotification(`✓ ${product.name} agregado al pedido`, 'success');
+    }
+    
+    // Guardar carrito
+    localStorage.setItem('distributoraMC_cart', JSON.stringify(cart));
+    
+    // Actualizar badge del carrito
+    updateCartBadgeFromInventory(cart);
+    
+    // Efecto visual en la fila
+    const row = document.querySelector(`tr[data-id="${productId}"]`);
+    if (row) {
+        row.classList.add('row-added');
+        setTimeout(() => row.classList.remove('row-added'), 600);
+    }
+}
+
+function updateCartBadgeFromInventory(cart) {
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cartBadge = document.getElementById('cartBadge');
+    if (cartBadge) {
+        cartBadge.textContent = totalItems;
+        cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+}
+
+window.quickAddToOrder = quickAddToOrder;
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Inicializando Sistema de Inventario MC...');
+    
+    // Cargar datos desde localStorage
+    loadInventoryFromStorage();
+    loadCategoriesFromStorage();
+    
+    // Exponer inventario globalmente
+    window.inventory = inventory;
+    window.categories = categories;
+    
+    console.log(`📦 Inventario cargado: ${inventory.length} productos`);
+    console.log(`🏷️ Categorías cargadas: ${categories.length} categorías`);
+    
+    // Si estamos en la página de inventario, renderizar
+    if (document.getElementById('productsTableBody')) {
+        renderProducts();
+        renderCategories();
+    }
+    
+    console.log('✅ Sistema de Inventario MC cargado correctamente! 📦');
+});
+
+// ============================================
+// UTILIDADES DE DEBUGGING
+// ============================================
+
+// Función para ver el estado actual de los IDs
+window.showIdStatus = function() {
+    console.log('=== ESTADO DE IDS ===');
+    console.log('Próximo ID de Producto:', nextProductId);
+    console.log('Próximo ID de Categoría:', nextCategoryId);
+    console.log('Total de Productos:', inventory.length);
+    console.log('Total de Categorías:', categories.length);
+    console.log('IDs de Productos:', inventory.map(p => p.id).sort((a, b) => a - b));
+    console.log('IDs de Categorías:', categories.map(c => c.id).sort((a, b) => a - b));
+};
+

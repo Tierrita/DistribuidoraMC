@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Inicio</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+                <li><a href="contacto.html">Contacto</a></li>
+            </ul>
+            <a href="pedidos.html" class="cart-button" id="cartButton">
+                <i class="fas fa-shopping-cart"></i>
+                <span class="cart-badge" id="cartBadge">0</span>
+            </a>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="container hero-content">
+            <h1 class="hero-title">Distribuidora de Fiambres MC</h1>
+            <p class="hero-subtitle">Calidad y frescura en cada producto</p>
+            <p class="hero-description">Tu mejor aliado en fiambres, embutidos y productos gourmet</p>
+            <div class="hero-buttons">
+                <a href="pedidos.html" class="btn btn-primary">Hacer Pedido</a>
+                <a href="contacto.html" class="btn btn-secondary">Contactanos</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Características -->
+    <section class="features">
+        <div class="container">
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-truck-fast"></i>
+                    </div>
+                    <h3>Entrega Rápida</h3>
+                    <p>Envíos express en toda la zona</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-halved"></i>
+                    </div>
+                    <h3>Calidad Garantizada</h3>
+                    <p>Productos certificados y frescos</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h3>Atención Personalizada</h3>
+                    <p>Asesoramiento profesional</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Productos Destacados -->
+    <section id="productos" class="products">
+        <div class="container">
+            <div class="section-header">
+                <h2>Nuestros Productos</h2>
+                <p>Amplia variedad de fiambres y embutidos de primera calidad</p>
+            </div>
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-bacon"></i>
+                    </div>
+                    <h3>Jamones</h3>
+                    <p>Jamón cocido, crudo, serrano y más variedades premium</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-cheese"></i>
+                    </div>
+                    <h3>Quesos</h3>
+                    <p>Selección de quesos nacionales e importados</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-sausage"></i>
+                    </div>
+                    <h3>Embutidos</h3>
+                    <p>Salames, chorizos, mortadelas y más</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-drumstick-bite"></i>
+                    </div>
+                    <h3>Carnes Frías</h3>
+                    <p>Pavita, pollo, lomito y especialidades</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-bread-slice"></i>
+                    </div>
+                    <h3>Productos Gourmet</h3>
+                    <p>Patés, aceitunas, pickles y delicatessen</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="product-card">
+                    <div class="product-icon">
+                        <i class="fas fa-fish"></i>
+                    </div>
+                    <h3>Pescados y Mariscos</h3>
+                    <p>Conservas y productos del mar</p>
+                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content">
+                <h2><i class="fas fa-shopping-bag"></i> ¿Listo para hacer tu pedido?</h2>
+                <p>Explora nuestro catálogo completo y agrega productos a tu carrito</p>
+                <a href="pedidos.html" class="btn btn-primary btn-large">
+                    <i class="fas fa-cart-shopping"></i> Comenzar Pedido
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Botón WhatsApp Flotante -->
+    <a href="https://wa.me/5491145678900" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Inicio</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="contacto.html">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Contacto</h4>
+                    <p><i class="fas fa-phone"></i> (011) 4567-8900</p>
+                    <p><i class="fas fa-envelope"></i> info@distribuidoramc.com</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="orders.js"></script>
+</body>
+</html>
