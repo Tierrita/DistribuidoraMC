@@ -119,7 +119,8 @@
                             <th>Código</th>
                             <th>Producto</th>
                             <th>Categoría</th>
-                            <th>Precio</th>
+                            <th>Precio Costo</th>
+                            <th>Precio Final</th>
                             <th>Stock</th>
                             <th>Estado</th>
                             <th>Acciones</th>
@@ -173,14 +174,13 @@
                 </button>
             </div>
             <form id="productForm">
+                <!-- Campo oculto (auto-generado) -->
+                <input type="hidden" id="productCode">
+                
                 <div class="form-grid">
                     <div class="form-group">
-                        <label for="productCode">Código</label>
-                        <input type="text" id="productCode" required placeholder="Ej: JAM001" maxlength="20">
-                    </div>
-                    <div class="form-group">
                         <label for="productName">Nombre del Producto</label>
-                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium" maxlength="100">
+                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium" maxlength="100" autofocus>
                     </div>
                     <div class="form-group">
                         <label for="productCategory">Categoría</label>
@@ -190,11 +190,15 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="productPrice">Precio ($)</label>
+                        <label for="productCostPrice">Precio de Costo ($)</label>
+                        <input type="number" id="productCostPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label for="productPrice">Precio Final ($)</label>
                         <input type="number" id="productPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
                     </div>
                     <div class="form-group">
-                        <label for="productStock">Stock (unidades)</label>
+                        <label for="productStock">Stock Actual</label>
                         <input type="number" id="productStock" min="0" max="999999" required placeholder="0">
                     </div>
                     <div class="form-group">
@@ -222,23 +226,18 @@
                 </button>
             </div>
             <form id="categoryForm">
+                <!-- Campos ocultos (auto-generados) -->
+                <input type="hidden" id="categoryIcon">
+                <input type="hidden" id="categoryColor">
+                
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="categoryName">Nombre de la Categoría</label>
-                        <input type="text" id="categoryName" required placeholder="Ej: Jamones" maxlength="50">
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="categoryIcon">Ícono (Font Awesome)</label>
-                        <input type="text" id="categoryIcon" required placeholder="Ej: fa-bacon" pattern="fa-.*" maxlength="30">
-                        <small>Busca íconos en: <a href="https://fontawesome.com/icons" target="_blank">fontawesome.com/icons</a></small>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="categoryColor">Color</label>
-                        <input type="color" id="categoryColor" value="#8B0000" required>
+                        <input type="text" id="categoryName" required placeholder="Ej: Jamones, Quesos, Fiambres..." maxlength="50" autofocus>
                     </div>
                     <div class="form-group full-width">
                         <label for="categoryDescription">Descripción (opcional)</label>
-                        <textarea id="categoryDescription" rows="3" placeholder="Descripción de la categoría..." maxlength="200"></textarea>
+                        <textarea id="categoryDescription" rows="4" placeholder="Descripción de la categoría..." maxlength="200"></textarea>
                     </div>
                 </div>
                 <div class="form-actions">

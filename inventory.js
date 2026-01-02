@@ -3,6 +3,207 @@
 // Con Gestión de Categorías y Productos + Supabase
 // ============================================
 
+// ============================================
+// FUNCIONES AUXILIARES DE AUTO-GENERACIÓN
+// ============================================
+
+// Auto-sugerir ícono Font Awesome basado en el nombre de la categoría
+function autoSuggestIcon(categoryName) {
+    const name = categoryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    const iconMap = {
+        'jamon': 'fa-drumstick-bite',
+        'jamones': 'fa-drumstick-bite',
+        'queso': 'fa-cheese',
+        'quesos': 'fa-cheese',
+        'fiambre': 'fa-bacon',
+        'fiambres': 'fa-bacon',
+        'salame': 'fa-bacon',
+        'salames': 'fa-bacon',
+        'chorizo': 'fa-hotdog',
+        'chorizos': 'fa-hotdog',
+        'mortadela': 'fa-bacon',
+        'mortadelas': 'fa-bacon',
+        'salchicha': 'fa-hotdog',
+        'salchichas': 'fa-hotdog',
+        'pan': 'fa-bread-slice',
+        'panes': 'fa-bread-slice',
+        'bebida': 'fa-bottle-water',
+        'bebidas': 'fa-bottle-water',
+        'lacteo': 'fa-cow',
+        'lacteos': 'fa-cow',
+        'leche': 'fa-cow',
+        'carne': 'fa-drumstick-bite',
+        'carnes': 'fa-drumstick-bite',
+        'pescado': 'fa-fish',
+        'pescados': 'fa-fish',
+        'vegetal': 'fa-carrot',
+        'vegetales': 'fa-carrot',
+        'verdura': 'fa-carrot',
+        'verduras': 'fa-carrot',
+        'fruta': 'fa-apple-whole',
+        'frutas': 'fa-apple-whole',
+        'postre': 'fa-ice-cream',
+        'postres': 'fa-ice-cream',
+        'dulce': 'fa-candy-cane',
+        'dulces': 'fa-candy-cane',
+        'golosina': 'fa-candy-cane',
+        'golosinas': 'fa-candy-cane',
+        'condimento': 'fa-pepper-hot',
+        'condimentos': 'fa-pepper-hot',
+        'especia': 'fa-pepper-hot',
+        'especias': 'fa-pepper-hot',
+        'pasta': 'fa-bowl-food',
+        'pastas': 'fa-bowl-food',
+        'conserva': 'fa-jar',
+        'conservas': 'fa-jar',
+        'enlatado': 'fa-jar',
+        'enlatados': 'fa-jar',
+        'aceite': 'fa-bottle-droplet',
+        'aceites': 'fa-bottle-droplet',
+        'vinagre': 'fa-bottle-droplet',
+        'vinagres': 'fa-bottle-droplet',
+        'snack': 'fa-cookie-bite',
+        'snacks': 'fa-cookie-bite',
+        'galleta': 'fa-cookie-bite',
+        'galletas': 'fa-cookie-bite',
+        'congelado': 'fa-snowflake',
+        'congelados': 'fa-snowflake',
+        'helado': 'fa-ice-cream',
+        'helados': 'fa-ice-cream'
+    };
+    
+    // Buscar coincidencias en el nombre
+    for (const [keyword, icon] of Object.entries(iconMap)) {
+        if (name.includes(keyword)) {
+            return icon;
+        }
+    }
+    
+    // Ícono por defecto
+    return 'fa-tag';
+}
+
+// Auto-generar color basado en el nombre de la categoría
+function autoSuggestColor(categoryName) {
+    const name = categoryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    
+    const colorMap = {
+        'jamon': '#D32F2F',
+        'jamones': '#D32F2F',
+        'queso': '#FFA726',
+        'quesos': '#FFA726',
+        'fiambre': '#C2185B',
+        'fiambres': '#C2185B',
+        'salame': '#8B0000',
+        'salames': '#8B0000',
+        'chorizo': '#E64A19',
+        'chorizos': '#E64A19',
+        'mortadela': '#AD1457',
+        'mortadelas': '#AD1457',
+        'salchicha': '#D84315',
+        'salchichas': '#D84315',
+        'pan': '#F57C00',
+        'panes': '#F57C00',
+        'bebida': '#0288D1',
+        'bebidas': '#0288D1',
+        'lacteo': '#1976D2',
+        'lacteos': '#1976D2',
+        'leche': '#42A5F5',
+        'carne': '#C62828',
+        'carnes': '#C62828',
+        'pescado': '#0097A7',
+        'pescados': '#0097A7',
+        'vegetal': '#388E3C',
+        'vegetales': '#388E3C',
+        'verdura': '#4CAF50',
+        'verduras': '#4CAF50',
+        'fruta': '#8BC34A',
+        'frutas': '#8BC34A',
+        'postre': '#E91E63',
+        'postres': '#E91E63',
+        'dulce': '#F06292',
+        'dulces': '#F06292',
+        'golosina': '#EC407A',
+        'golosinas': '#EC407A',
+        'condimento': '#FF5722',
+        'condimentos': '#FF5722',
+        'especia': '#BF360C',
+        'especias': '#BF360C',
+        'pasta': '#FBC02D',
+        'pastas': '#FBC02D',
+        'conserva': '#689F38',
+        'conservas': '#689F38',
+        'enlatado': '#7CB342',
+        'enlatados': '#7CB342',
+        'aceite': '#F9A825',
+        'aceites': '#F9A825',
+        'vinagre': '#AFB42B',
+        'vinagres': '#AFB42B',
+        'snack': '#FF6F00',
+        'snacks': '#FF6F00',
+        'galleta': '#EF6C00',
+        'galletas': '#EF6C00',
+        'congelado': '#0288D1',
+        'congelados': '#0288D1',
+        'helado': '#AB47BC',
+        'helados': '#AB47BC'
+    };
+    
+    // Buscar coincidencias en el nombre
+    for (const [keyword, color] of Object.entries(colorMap)) {
+        if (name.includes(keyword)) {
+            return color;
+        }
+    }
+    
+    // Colores aleatorios por defecto
+    const defaultColors = [
+        '#8B0000', '#1976D2', '#388E3C', '#F57C00', '#7B1FA2',
+        '#C2185B', '#0097A7', '#5D4037', '#455A64', '#E64A19',
+        '#00796B', '#512DA8', '#FFA726', '#C62828', '#689F38'
+    ];
+    
+    return defaultColors[Math.floor(Math.random() * defaultColors.length)];
+}
+
+// Generar código automático para productos
+async function generateProductCode() {
+    let maxCode = 0;
+    
+    // Buscar el código más alto en el inventario actual
+    inventory.forEach(product => {
+        const codeNumber = parseInt(product.code.replace(/\D/g, ''));
+        if (!isNaN(codeNumber) && codeNumber > maxCode) {
+            maxCode = codeNumber;
+        }
+    });
+    
+    // Si usamos Supabase, también verificar en la base de datos
+    if (useSupabase && window.supabaseDB) {
+        try {
+            const { data, error } = await window.supabaseDB.supabase
+                .from('productos')
+                .select('code')
+                .order('code', { ascending: false })
+                .limit(1);
+                
+            if (data && data.length > 0) {
+                const dbCodeNumber = parseInt(data[0].code.replace(/\D/g, ''));
+                if (!isNaN(dbCodeNumber) && dbCodeNumber > maxCode) {
+                    maxCode = dbCodeNumber;
+                }
+            }
+        } catch (error) {
+            console.warn('No se pudo verificar códigos en Supabase:', error);
+        }
+    }
+    
+    // Generar el siguiente código
+    const nextNumber = maxCode + 1;
+    return `PROD${String(nextNumber).padStart(4, '0')}`;
+}
+
 // Variables globales
 let inventory = [];
 let categories = [];
@@ -443,9 +644,11 @@ async function handleCategoryFormSubmit(e) {
     
     const name = document.getElementById('categoryName').value.trim();
     const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
-    const icon = document.getElementById('categoryIcon').value.trim();
-    const color = document.getElementById('categoryColor').value;
     const description = document.getElementById('categoryDescription').value.trim();
+    
+    // Auto-generar ícono y color
+    const icon = autoSuggestIcon(name);
+    const color = autoSuggestColor(name);
     
     // ===== VALIDACIONES =====
     
@@ -481,21 +684,7 @@ async function handleCategoryFormSubmit(e) {
         }
     }
     
-    // 5. Validar ícono no vacío
-    if (icon.length === 0) {
-        alert('Debes ingresar un ícono de Font Awesome');
-        document.getElementById('categoryIcon').focus();
-        return;
-    }
-    
-    // 6. Validar formato del ícono (debe empezar con fa-)
-    if (!icon.startsWith('fa-')) {
-        alert('El ícono debe empezar con "fa-" (ejemplo: fa-bacon)');
-        document.getElementById('categoryIcon').focus();
-        return;
-    }
-    
-    // 7. Validar longitud de descripción
+    // 5. Validar longitud de descripción
     if (description.length > 200) {
         alert('La descripción es demasiado larga (máximo 200 caracteres)');
         document.getElementById('categoryDescription').focus();
@@ -660,6 +849,7 @@ function openModalForEdit(productId) {
         document.getElementById('productCode').value = product.code;
         document.getElementById('productName').value = product.name;
         document.getElementById('productCategory').value = product.category;
+        document.getElementById('productCostPrice').value = product.costPrice || 0;
         document.getElementById('productPrice').value = product.price;
         document.getElementById('productStock').value = product.stock;
         document.getElementById('productMinStock').value = product.minStock;
@@ -677,10 +867,16 @@ function closeProductModal() {
 async function handleProductFormSubmit(e) {
     e.preventDefault();
     
+    // Auto-generar código para productos nuevos
+    const code = editingProductId ? 
+        inventory.find(p => p.id === editingProductId)?.code : 
+        await generateProductCode();
+    
     const productData = {
-        code: document.getElementById('productCode').value.trim().toUpperCase(),
+        code: code,
         name: document.getElementById('productName').value.trim(),
         category: document.getElementById('productCategory').value,
+        costPrice: parseFloat(document.getElementById('productCostPrice').value),
         price: parseFloat(document.getElementById('productPrice').value),
         stock: parseInt(document.getElementById('productStock').value),
         minStock: parseInt(document.getElementById('productMinStock').value)
@@ -688,16 +884,7 @@ async function handleProductFormSubmit(e) {
     
     // ===== VALIDACIONES =====
     
-    // 1. Validar código duplicado (solo para productos nuevos o si cambió el código)
-    if (!editingProductId || inventory.find(p => p.id === editingProductId)?.code !== productData.code) {
-        if (inventory.some(p => p.code === productData.code)) {
-            alert('Ya existe un producto con ese código');
-            document.getElementById('productCode').focus();
-            return;
-        }
-    }
-    
-    // 2. Validar nombre no vacío y longitud máxima
+    // 1. Validar nombre no vacío y longitud máxima
     if (productData.name.length === 0) {
         alert('El nombre del producto no puede estar vacío');
         document.getElementById('productName').focus();
@@ -710,9 +897,16 @@ async function handleProductFormSubmit(e) {
         return;
     }
     
-    // 3. Validar precio mayor a 0
-    if (productData.price <= 0) {
-        alert('El precio debe ser mayor a 0');
+    // 2. Validar precio de costo mayor a 0
+    if (productData.costPrice <= 0 || isNaN(productData.costPrice)) {
+        alert('El precio de costo debe ser mayor a 0');
+        document.getElementById('productCostPrice').focus();
+        return;
+    }
+    
+    // 3. Validar precio final mayor a 0
+    if (productData.price <= 0 || isNaN(productData.price)) {
+        alert('El precio final debe ser mayor a 0');
         document.getElementById('productPrice').focus();
         return;
     }
@@ -724,28 +918,35 @@ async function handleProductFormSubmit(e) {
         return;
     }
     
-    // 5. Validar stock no negativo
+    // 5. Advertir si precio final es menor al precio de costo
+    if (productData.price < productData.costPrice) {
+        if (!confirm('El precio final es menor al precio de costo. ¿Deseas continuar de todos modos?')) {
+            return;
+        }
+    }
+    
+    // 6. Validar stock no negativo
     if (productData.stock < 0) {
         alert('El stock no puede ser negativo');
         document.getElementById('productStock').focus();
         return;
     }
     
-    // 6. Validar stock mínimo no negativo
+    // 7. Validar stock mínimo no negativo
     if (productData.minStock < 0) {
         alert('El stock mínimo no puede ser negativo');
         document.getElementById('productMinStock').focus();
         return;
     }
     
-    // 7. Validar que stock mínimo sea menor al stock actual (advertencia)
+    // 8. Validar que stock mínimo sea menor al stock actual (advertencia)
     if (productData.minStock > productData.stock && productData.stock > 0) {
         if (!confirm('El stock actual es menor al stock mínimo. ¿Deseas continuar de todos modos?')) {
             return;
         }
     }
     
-    // 8. Validar categoría seleccionada
+    // 9. Validar categoría seleccionada
     if (!productData.category) {
         alert('Debes seleccionar una categoría');
         document.getElementById('productCategory').focus();
@@ -833,6 +1034,7 @@ function renderInventory(productsToRender = inventory) {
         const category = categories.find(c => c.slug === product.category);
         const categoryName = category ? category.name : product.category;
         const categoryIcon = category ? category.icon : 'fa-box';
+        const costPrice = product.costPrice || 0;
         
         return `
             <tr data-id="${product.id}">
@@ -844,6 +1046,7 @@ function renderInventory(productsToRender = inventory) {
                         ${categoryName}
                     </span>
                 </td>
+                <td class="price">$${costPrice.toFixed(2)}</td>
                 <td class="price">$${product.price.toFixed(2)}</td>
                 <td><strong>${product.stock}</strong> unidades</td>
                 <td>
