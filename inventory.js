@@ -303,6 +303,7 @@ async function loadDataFromSupabase() {
             code: prod.code,
             name: prod.name,
             category: prod.category,
+            costPrice: parseFloat(prod.cost_price) || 0,
             price: parseFloat(prod.price),
             stock: prod.stock,
             minStock: prod.min_stock || 0,
