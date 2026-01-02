@@ -3,14 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribuidora MC</title>
-    <script>
-        // Redirigir automáticamente a pedidos
-        window.location.href = 'pedidos.html';
-    </script>
+    <title>Home - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <p>Redirigiendo...</p>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="clientes.html">Clientes</a></li>
+                <li><a href="ventas.html">Ventas</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
+            <p>Panel de control y estadísticas</p>
+        </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <section class="dashboard">
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon products">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Total Productos</h4>
+                        <p class="stat-number" id="totalProducts">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Pedidos del Mes</h4>
+                        <p class="stat-number" id="monthlyOrders">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon clients">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Clientes</h4>
+                        <p class="stat-number" id="totalClients">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon revenue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Ventas del Mes</h4>
+                        <p class="stat-number" id="monthlyRevenue">$0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder para gráficos -->
+            <div class="dashboard-charts">
+                <div class="chart-placeholder">
+                    <i class="fas fa-chart-bar"></i>
+                    <h3>Gráficos en desarrollo</h3>
+                    <p>Próximamente: estadísticas de ventas, productos más vendidos, y análisis de rendimiento</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="clientes.html">Clientes</a></li>
+                        <li><a href="ventas.html">Ventas</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Cargar estadísticas básicas
+        document.addEventListener('DOMContentLoaded', () => {
+            const inventory = JSON.parse(localStorage.getItem('distributoraMC_inventory') || '[]');
+            const orders = JSON.parse(localStorage.getItem('distributoraMC_orders') || '[]');
+            
+            document.getElementById('totalProducts').textContent = inventory.length;
+            document.getElementById('monthlyOrders').textContent = orders.length;
+            document.getElementById('totalClients').textContent = new Set(orders.map(o => o.customer?.name)).size;
+            
+            const monthlyTotal = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+            document.getElementById('monthlyRevenue').textContent = `$${monthlyTotal.toFixed(2)}`;
+        });
+    </script>
 </body>
 </html>    <!-- Características -->
     <section class="features">

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ventas - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="clientes.html">Clientes</a></li>
+                <li><a href="ventas.html" class="active">Ventas</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-chart-line"></i> Análisis de Ventas</h1>
+            <p>Reportes y estadísticas de ventas</p>
+        </div>
+    </section>
+
+    <!-- Ventas Content -->
+    <section class="ventas">
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon revenue">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Ventas Totales</h4>
+                        <p class="stat-number" id="totalRevenue">$0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Total Pedidos</h4>
+                        <p class="stat-number" id="totalOrders">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon products">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Ticket Promedio</h4>
+                        <p class="stat-number" id="avgTicket">$0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon clients">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Este Mes</h4>
+                        <p class="stat-number" id="monthRevenue">$0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Placeholder para reportes -->
+            <div class="dashboard-charts">
+                <div class="chart-placeholder">
+                    <i class="fas fa-chart-pie"></i>
+                    <h3>Reportes en Desarrollo</h3>
+                    <p>Próximamente: reportes detallados, productos más vendidos, gráficos de tendencias y análisis por período.</p>
+                </div>
+            </div>
+
+            <!-- Últimos Pedidos -->
+            <div class="recent-orders-section">
+                <h2><i class="fas fa-receipt"></i> Últimos Pedidos</h2>
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentOrdersBody">
+                        <!-- Los pedidos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div id="emptyOrdersState" class="empty-state" style="display: none;">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h3>No hay ventas registradas</h3>
+                    <p>Las ventas aparecerán aquí automáticamente</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="clientes.html">Clientes</a></li>
+                        <li><a href="ventas.html">Ventas</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        // Cargar estadísticas de ventas
+        document.addEventListener('DOMContentLoaded', () => {
+            const orders = JSON.parse(localStorage.getItem('distributoraMC_orders') || '[]');
+            const recentOrdersBody = document.getElementById('recentOrdersBody');
+            const emptyOrdersState = document.getElementById('emptyOrdersState');
+            
+            if (orders.length === 0) {
+                emptyOrdersState.style.display = 'flex';
+                return;
+            }
+            
+            emptyOrdersState.style.display = 'none';
+            
+            // Calcular estadísticas
+            const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+            const avgTicket = orders.length > 0 ? totalRevenue / orders.length : 0;
+            
+            // Ventas del mes actual
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            const monthRevenue = orders
+                .filter(order => {
+                    const orderDate = new Date(order.date);
+                    return orderDate.getMonth() === currentMonth && 
+                           orderDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, order) => sum + (order.total || 0), 0);
+            
+            // Actualizar stats
+            document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString('es-AR');
+            document.getElementById('totalOrders').textContent = orders.length;
+            document.getElementById('avgTicket').textContent = '$' + avgTicket.toFixed(0).toLocaleString('es-AR');
+            document.getElementById('monthRevenue').textContent = '$' + monthRevenue.toLocaleString('es-AR');
+            
+            // Mostrar últimos 10 pedidos
+            const recentOrders = orders.slice(-10).reverse();
+            
+            recentOrdersBody.innerHTML = recentOrders.map(order => {
+                const date = new Date(order.date).toLocaleDateString('es-AR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+                
+                return `
+                    <tr>
+                        <td><strong>#${order.id}</strong></td>
+                        <td>${order.customer?.name || 'Sin nombre'}</td>
+                        <td>${date}</td>
+                        <td><strong>$${(order.total || 0).toLocaleString('es-AR')}</strong></td>
+                        <td><span class="status-badge status-${order.status || 'pending'}">${order.status || 'Pendiente'}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        });
+    </script>
+</body>
+</html>
