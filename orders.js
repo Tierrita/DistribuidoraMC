@@ -102,6 +102,53 @@ function getCategoryIcons() {
 }
 
 // ============================================
+// GESTIÓN DE STOCK EN PEDIDOS
+// ============================================
+
+async function updateInventoryStock(cartItems) {
+    // Descontar stock de cada producto del carrito
+    for (const item of cartItems) {
+        const product = window.inventory.find(p => p.id === item.productId);
+        
+        if (product) {
+            const newStock = product.stock - item.quantity;
+            
+            // Actualizar en el array global
+            product.stock = newStock;
+            
+            // Actualizar en Supabase si está disponible
+            if (window.supabaseDB && typeof window.supabaseDB.updateProducto === 'function') {
+                try {
+                    await window.supabaseDB.updateProducto(product.id, {
+                        code: product.code,
+                        name: product.name,
+                        category: product.category,
+                        cost_price: product.costPrice || 0,
+                        price: product.price,
+                        stock: newStock,
+                        unit: product.unit || 'kg',
+                        min_stock: product.minStock || 0
+                    });
+                    console.log(`✅ Stock actualizado en Supabase: ${product.name} - Nuevo stock: ${newStock}`);
+                } catch (error) {
+                    console.error('Error al actualizar stock en Supabase:', error);
+                }
+            }
+        }
+    }
+    
+    // Actualizar en localStorage
+    localStorage.setItem('distributoraMC_inventory', JSON.stringify(window.inventory));
+    
+    // Re-renderizar productos si estamos en la página de pedidos
+    if (typeof renderProductsForOrders === 'function') {
+        renderProductsForOrders();
+    }
+    
+    console.log('✅ Stock actualizado en inventario local');
+}
+
+// ============================================
 // INICIALIZACIÓN
 // ============================================
 
@@ -724,13 +771,16 @@ function handleCheckoutSubmit(e) {
     
     // 6. Validar que todos los productos tengan stock disponible
     for (const item of cart) {
-        const product = window.inventory.find(p => p.id === item.id);
+        const product = window.inventory.find(p => p.id === item.productId);
         if (!product) {
             showNotification(`El producto "${item.name}" ya no está disponible`, 'error');
             return;
         }
         if (product.stock < item.quantity) {
             showNotification(`Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error');
+            return;
+        }
+    }
             return;
         }
     }
@@ -756,6 +806,9 @@ function handleCheckoutSubmit(e) {
     orders.push(orderData);
     saveOrdersToStorage();
     
+    // ===== DESCONTAR STOCK DEL INVENTARIO =====
+    updateInventoryStock(cart);
+    
     // Limpiar carrito
     cart = [];
     saveCartToStorage();
@@ -767,6 +820,7 @@ function handleCheckoutSubmit(e) {
     openConfirmationModal(orderData.orderNumber);
     
     console.log('Pedido confirmado:', orderData);
+    showNotification('Stock actualizado correctamente', 'success');
 }
 
 function generateOrderNumber() {
