@@ -1,6 +1,6 @@
 // ============================================
-// SISTEMA DE INVENTARIO V2 - Distribuidora MC
-// Con Gestión de Categorías y Productos
+// SISTEMA DE INVENTARIO V3 - Distribuidora MC
+// Con Gestión de Categorías y Productos + Supabase
 // ============================================
 
 // Variables globales
@@ -10,9 +10,12 @@ let editingProductId = null;
 let editingCategoryId = null;
 let currentTab = 'productos';
 
-// Contadores autoincrementales
+// Contadores autoincrementales (solo para fallback)
 let nextProductId = 1;
 let nextCategoryId = 1;
+
+// Flag para saber si Supabase está disponible
+let useSupabase = false;
 
 // Elementos del DOM - Productos
 const inventoryTableBody = document.getElementById('inventoryTableBody');
@@ -45,7 +48,77 @@ const tabCategorias = document.getElementById('tabCategorias');
 // INICIALIZACIÓN
 // ============================================
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Verificar si Supabase está disponible
+    if (typeof window.supabaseDB !== 'undefined') {
+        try {
+            const connected = await window.supabaseDB.verificarConexion();
+            if (connected) {
+                useSupabase = true;
+                console.log('✅ Modo Supabase activado');
+                await loadDataFromSupabase();
+            } else {
+                console.log('⚠️ Supabase no disponible, usando LocalStorage');
+                loadDataFromLocalStorage();
+            }
+        } catch (error) {
+            console.log('⚠️ Error con Supabase, usando LocalStorage:', error);
+            loadDataFromLocalStorage();
+        }
+    } else {
+        console.log('ℹ️ Usando LocalStorage (Supabase no configurado)');
+        loadDataFromLocalStorage();
+    }
+    
+    renderInventory();
+    renderCategories();
+    updateStats();
+    loadCategoryFilters();
+    loadCategoryOptions();
+    initializeEventListeners();
+});
+
+// ============================================
+// CARGA DE DATOS
+// ============================================
+
+async function loadDataFromSupabase() {
+    try {
+        // Cargar categorías
+        const cats = await window.supabaseDB.getCategorias();
+        categories = cats.map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            slug: cat.slug || cat.name.toLowerCase(),
+            icon: cat.icon || 'fa-box',
+            color: cat.color || '#8B0000',
+            description: cat.description || ''
+        }));
+        
+        // Cargar productos
+        const prods = await window.supabaseDB.getProductos();
+        inventory = prods.map(prod => ({
+            id: prod.id,
+            code: prod.code,
+            name: prod.name,
+            category: prod.category,
+            price: parseFloat(prod.price),
+            stock: prod.stock,
+            minStock: prod.min_stock || 0,
+            unit: prod.unit || 'kg'
+        }));
+        
+        // Actualizar variable global para pedidos
+        window.inventory = inventory;
+        
+        console.log(`✅ Cargados ${categories.length} categorías y ${inventory.length} productos desde Supabase`);
+    } catch (error) {
+        console.error('Error al cargar datos de Supabase:', error);
+        throw error;
+    }
+}
+
+function loadDataFromLocalStorage() {
     loadCategoriesFromStorage();
     loadInventoryFromStorage();
     
@@ -58,14 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inventory.length === 0) {
         addSampleProducts();
     }
-    
-    renderInventory();
-    renderCategories();
-    updateStats();
-    loadCategoryFilters();
-    loadCategoryOptions();
-    initializeEventListeners();
-});
+}
 
 // ============================================
 // ALMACENAMIENTO
@@ -372,7 +438,7 @@ function closeCategoryModal() {
     editingCategoryId = null;
 }
 
-function handleCategoryFormSubmit(e) {
+async function handleCategoryFormSubmit(e) {
     e.preventDefault();
     
     const name = document.getElementById('categoryName').value.trim();
@@ -385,14 +451,14 @@ function handleCategoryFormSubmit(e) {
     
     // 1. Validar nombre no vacío
     if (name.length === 0) {
-        showNotification('El nombre de la categoría no puede estar vacío', 'error');
+        alert('El nombre de la categoría no puede estar vacío');
         document.getElementById('categoryName').focus();
         return;
     }
     
     // 2. Validar longitud del nombre
     if (name.length > 50) {
-        showNotification('El nombre de la categoría es demasiado largo (máximo 50 caracteres)', 'error');
+        alert('El nombre de la categoría es demasiado largo (máximo 50 caracteres)');
         document.getElementById('categoryName').focus();
         return;
     }
@@ -400,7 +466,7 @@ function handleCategoryFormSubmit(e) {
     // 3. Validar nombre duplicado (solo para categorías nuevas o si cambió el nombre)
     if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.name !== name) {
         if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-            showNotification('Ya existe una categoría con ese nombre', 'error');
+            alert('Ya existe una categoría con ese nombre');
             document.getElementById('categoryName').focus();
             return;
         }
@@ -409,7 +475,7 @@ function handleCategoryFormSubmit(e) {
     // 4. Validar slug duplicado
     if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.slug !== slug) {
         if (categories.some(c => c.slug === slug)) {
-            showNotification('Ya existe una categoría similar con ese nombre', 'error');
+            alert('Ya existe una categoría similar con ese nombre');
             document.getElementById('categoryName').focus();
             return;
         }
@@ -417,21 +483,21 @@ function handleCategoryFormSubmit(e) {
     
     // 5. Validar ícono no vacío
     if (icon.length === 0) {
-        showNotification('Debes ingresar un ícono de Font Awesome', 'error');
+        alert('Debes ingresar un ícono de Font Awesome');
         document.getElementById('categoryIcon').focus();
         return;
     }
     
     // 6. Validar formato del ícono (debe empezar con fa-)
     if (!icon.startsWith('fa-')) {
-        showNotification('El ícono debe empezar con "fa-" (ejemplo: fa-bacon)', 'error');
+        alert('El ícono debe empezar con "fa-" (ejemplo: fa-bacon)');
         document.getElementById('categoryIcon').focus();
         return;
     }
     
     // 7. Validar longitud de descripción
     if (description.length > 200) {
-        showNotification('La descripción es demasiado larga (máximo 200 caracteres)', 'error');
+        alert('La descripción es demasiado larga (máximo 200 caracteres)');
         document.getElementById('categoryDescription').focus();
         return;
     }
@@ -446,41 +512,69 @@ function handleCategoryFormSubmit(e) {
         description: description
     };
     
-    if (editingCategoryId) {
-        // Editar categoría existente
-        const index = categories.findIndex(c => c.id === editingCategoryId);
-        if (index !== -1) {
-            const oldSlug = categories[index].slug;
-            categories[index] = { ...categories[index], ...categoryData };
-            
-            // Actualizar productos que usan esta categoría
-            inventory.forEach(product => {
-                if (product.category === oldSlug) {
-                    product.category = slug;
+    try {
+        if (editingCategoryId) {
+            // Editar categoría existente
+            if (useSupabase) {
+                const oldCategory = categories.find(c => c.id === editingCategoryId);
+                const oldSlug = oldCategory?.slug;
+                
+                await window.supabaseDB.updateCategoria(editingCategoryId, categoryData);
+                
+                // Si cambió el slug, actualizar productos relacionados
+                if (oldSlug && oldSlug !== slug) {
+                    const productsToUpdate = inventory.filter(p => p.category === oldSlug);
+                    for (const product of productsToUpdate) {
+                        await window.supabaseDB.updateProducto(product.id, { category: slug });
+                    }
                 }
-            });
-            
-            saveInventoryToStorage();
-            showNotification('Categoría actualizada correctamente', 'success');
+                
+                await loadDataFromSupabase();
+            } else {
+                const index = categories.findIndex(c => c.id === editingCategoryId);
+                if (index !== -1) {
+                    const oldSlug = categories[index].slug;
+                    categories[index] = { ...categories[index], ...categoryData };
+                    
+                    // Actualizar productos que usan esta categoría
+                    inventory.forEach(product => {
+                        if (product.category === oldSlug) {
+                            product.category = slug;
+                        }
+                    });
+                    
+                    saveInventoryToStorage();
+                    saveCategoriestoStorage();
+                }
+            }
+            alert('Categoría actualizada correctamente');
+        } else {
+            // Agregar nueva categoría
+            if (useSupabase) {
+                await window.supabaseDB.addCategoria(categoryData);
+                await loadDataFromSupabase();
+            } else {
+                const newCategory = {
+                    id: nextCategoryId++,
+                    ...categoryData
+                };
+                categories.push(newCategory);
+                saveCategoriestoStorage();
+            }
+            alert('Categoría agregada correctamente');
         }
-    } else {
-        // Agregar nueva categoría con ID autoincremental
-        const newCategory = {
-            id: nextCategoryId++,
-            ...categoryData
-        };
-        categories.push(newCategory);
-        showNotification('Categoría agregada correctamente', 'success');
+        
+        renderCategories();
+        loadCategoryFilters();
+        loadCategoryOptions();
+        closeCategoryModal();
+    } catch (error) {
+        console.error('Error al guardar categoría:', error);
+        alert('Error al guardar la categoría');
     }
-    
-    saveCategoriestoStorage();
-    renderCategories();
-    loadCategoryFilters();
-    loadCategoryOptions();
-    closeCategoryModal();
 }
 
-function deleteCategory(categoryId) {
+async function deleteCategory(categoryId) {
     const category = categories.find(c => c.id === categoryId);
     if (!category) return;
     
@@ -488,17 +582,28 @@ function deleteCategory(categoryId) {
     const productsInCategory = inventory.filter(p => p.category === category.slug).length;
     
     if (productsInCategory > 0) {
-        showNotification(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`, 'error');
+        alert(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`);
         return;
     }
     
     if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
-        categories = categories.filter(c => c.id !== categoryId);
-        saveCategoriestoStorage();
-        renderCategories();
-        loadCategoryFilters();
-        loadCategoryOptions();
-        showNotification('Categoría eliminada correctamente', 'success');
+        try {
+            if (useSupabase) {
+                await window.supabaseDB.deleteCategoria(categoryId);
+                await loadDataFromSupabase();
+            } else {
+                categories = categories.filter(c => c.id !== categoryId);
+                saveCategoriestoStorage();
+            }
+            
+            renderCategories();
+            loadCategoryFilters();
+            loadCategoryOptions();
+            alert('Categoría eliminada correctamente');
+        } catch (error) {
+            console.error('Error al eliminar categoría:', error);
+            alert('Error al eliminar la categoría');
+        }
     }
 }
 
@@ -569,7 +674,7 @@ function closeProductModal() {
     editingProductId = null;
 }
 
-function handleProductFormSubmit(e) {
+async function handleProductFormSubmit(e) {
     e.preventDefault();
     
     const productData = {
@@ -586,7 +691,7 @@ function handleProductFormSubmit(e) {
     // 1. Validar código duplicado (solo para productos nuevos o si cambió el código)
     if (!editingProductId || inventory.find(p => p.id === editingProductId)?.code !== productData.code) {
         if (inventory.some(p => p.code === productData.code)) {
-            showNotification('Ya existe un producto con ese código', 'error');
+            alert('Ya existe un producto con ese código');
             document.getElementById('productCode').focus();
             return;
         }
@@ -594,41 +699,41 @@ function handleProductFormSubmit(e) {
     
     // 2. Validar nombre no vacío y longitud máxima
     if (productData.name.length === 0) {
-        showNotification('El nombre del producto no puede estar vacío', 'error');
+        alert('El nombre del producto no puede estar vacío');
         document.getElementById('productName').focus();
         return;
     }
     
     if (productData.name.length > 100) {
-        showNotification('El nombre del producto es demasiado largo (máximo 100 caracteres)', 'error');
+        alert('El nombre del producto es demasiado largo (máximo 100 caracteres)');
         document.getElementById('productName').focus();
         return;
     }
     
     // 3. Validar precio mayor a 0
     if (productData.price <= 0) {
-        showNotification('El precio debe ser mayor a 0', 'error');
+        alert('El precio debe ser mayor a 0');
         document.getElementById('productPrice').focus();
         return;
     }
     
     // 4. Validar precio máximo razonable
     if (productData.price > 9999999) {
-        showNotification('El precio es demasiado alto', 'error');
+        alert('El precio es demasiado alto');
         document.getElementById('productPrice').focus();
         return;
     }
     
     // 5. Validar stock no negativo
     if (productData.stock < 0) {
-        showNotification('El stock no puede ser negativo', 'error');
+        alert('El stock no puede ser negativo');
         document.getElementById('productStock').focus();
         return;
     }
     
     // 6. Validar stock mínimo no negativo
     if (productData.minStock < 0) {
-        showNotification('El stock mínimo no puede ser negativo', 'error');
+        alert('El stock mínimo no puede ser negativo');
         document.getElementById('productMinStock').focus();
         return;
     }
@@ -642,48 +747,75 @@ function handleProductFormSubmit(e) {
     
     // 8. Validar categoría seleccionada
     if (!productData.category) {
-        showNotification('Debes seleccionar una categoría', 'error');
+        alert('Debes seleccionar una categoría');
         document.getElementById('productCategory').focus();
         return;
     }
     
     // ===== FIN VALIDACIONES =====
     
-    if (editingProductId) {
-        // Editar producto existente
-        const index = inventory.findIndex(p => p.id === editingProductId);
-        if (index !== -1) {
-            inventory[index] = { ...inventory[index], ...productData };
-            showNotification('Producto actualizado correctamente', 'success');
+    try {
+        if (editingProductId) {
+            // Editar producto existente
+            if (useSupabase) {
+                await window.supabaseDB.updateProducto(editingProductId, productData);
+                await loadDataFromSupabase();
+            } else {
+                const index = inventory.findIndex(p => p.id === editingProductId);
+                if (index !== -1) {
+                    inventory[index] = { ...inventory[index], ...productData };
+                    saveInventoryToStorage();
+                }
+            }
+            alert('Producto actualizado correctamente');
+        } else {
+            // Agregar nuevo producto
+            if (useSupabase) {
+                await window.supabaseDB.addProducto(productData);
+                await loadDataFromSupabase();
+            } else {
+                const newProduct = {
+                    id: nextProductId++,
+                    ...productData
+                };
+                inventory.push(newProduct);
+                saveInventoryToStorage();
+            }
+            alert('Producto agregado correctamente');
         }
-    } else {
-        // Agregar nuevo producto con ID autoincremental
-        const newProduct = {
-            id: nextProductId++,
-            ...productData
-        };
-        inventory.push(newProduct);
-        showNotification('Producto agregado correctamente', 'success');
+        
+        renderInventory();
+        renderCategories(); // Actualizar contadores
+        updateStats();
+        closeProductModal();
+    } catch (error) {
+        console.error('Error al guardar producto:', error);
+        alert('Error al guardar el producto');
     }
-    
-    saveInventoryToStorage();
-    renderInventory();
-    renderCategories(); // Actualizar contadores
-    updateStats();
-    closeProductModal();
 }
 
-function deleteProduct(productId) {
+async function deleteProduct(productId) {
     const product = inventory.find(p => p.id === productId);
     if (!product) return;
     
     if (confirm(`¿Estás seguro de eliminar "${product.name}"?`)) {
-        inventory = inventory.filter(p => p.id !== productId);
-        saveInventoryToStorage();
-        renderInventory();
-        renderCategories(); // Actualizar contadores
-        updateStats();
-        showNotification('Producto eliminado correctamente', 'success');
+        try {
+            if (useSupabase) {
+                await window.supabaseDB.deleteProducto(productId);
+                await loadDataFromSupabase();
+            } else {
+                inventory = inventory.filter(p => p.id !== productId);
+                saveInventoryToStorage();
+            }
+            
+            renderInventory();
+            renderCategories(); // Actualizar contadores
+            updateStats();
+            alert('Producto eliminado correctamente');
+        } catch (error) {
+            console.error('Error al eliminar producto:', error);
+            alert('Error al eliminar el producto');
+        }
     }
 }
 
