@@ -1168,12 +1168,12 @@ html {
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(8px);
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal.active {
     display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .modal-content {

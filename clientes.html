@@ -316,7 +316,7 @@
             document.getElementById('clientForm').reset();
             document.getElementById('clientId').value = generateClientId();
             document.getElementById('clientDebt').value = '0';
-            document.getElementById('clientModal').style.display = 'block';
+            document.getElementById('clientModal').style.display = 'flex';
         }
 
         // Editar cliente
@@ -333,7 +333,7 @@
             document.getElementById('clientEmail').value = client.email || '';
             document.getElementById('clientDebt').value = client.debt || 0;
             document.getElementById('clientNotes').value = client.notes || '';
-            document.getElementById('clientModal').style.display = 'block';
+            document.getElementById('clientModal').style.display = 'flex';
         }
 
         // Eliminar cliente
