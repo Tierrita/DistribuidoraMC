@@ -187,6 +187,102 @@ async function updateStock(id, newStock) {
 }
 
 // ============================================
+// FUNCIONES DE BASE DE DATOS - CLIENTES
+// ============================================
+
+async function getClientes() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('clientes')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+    } catch (error) {
+        console.error('Error al cargar clientes:', error);
+        throw error;
+    }
+}
+
+async function addCliente(cliente) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('clientes')
+            .insert([{
+                id: cliente.id,
+                name: cliente.name,
+                phone: cliente.phone,
+                address: cliente.address,
+                email: cliente.email,
+                debt: cliente.debt || 0,
+                notes: cliente.notes
+            }])
+            .select();
+        
+        if (error) throw error;
+        return data[0];
+    } catch (error) {
+        console.error('Error al agregar cliente:', error);
+        throw error;
+    }
+}
+
+async function updateCliente(id, cliente) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('clientes')
+            .update({
+                name: cliente.name,
+                phone: cliente.phone,
+                address: cliente.address,
+                email: cliente.email,
+                debt: cliente.debt || 0,
+                notes: cliente.notes
+            })
+            .eq('id', id)
+            .select();
+        
+        if (error) throw error;
+        return data[0];
+    } catch (error) {
+        console.error('Error al actualizar cliente:', error);
+        throw error;
+    }
+}
+
+async function deleteCliente(id) {
+    try {
+        const { error } = await supabaseClient
+            .from('clientes')
+            .delete()
+            .eq('id', id);
+        
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Error al eliminar cliente:', error);
+        throw error;
+    }
+}
+
+async function updateClientDebt(id, newDebt) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('clientes')
+            .update({ debt: newDebt })
+            .eq('id', id)
+            .select();
+        
+        if (error) throw error;
+        return data[0];
+    } catch (error) {
+        console.error('Error al actualizar deuda:', error);
+        throw error;
+    }
+}
+
+// ============================================
 // FUNCIONES AUXILIARES
 // ============================================
 
@@ -218,5 +314,10 @@ window.supabaseDB = {
     updateProducto,
     deleteProducto,
     updateStock,
+    getClientes,
+    addCliente,
+    updateCliente,
+    deleteCliente,
+    updateClientDebt,
     verificarConexion
 };
