@@ -216,13 +216,18 @@ function initializeClientSelector() {
     
     if (!clientSearchInput) return;
     
+    // Mostrar todos los clientes al hacer focus
+    clientSearchInput.addEventListener('focus', () => {
+        showAllClients();
+    });
+    
     // Búsqueda en tiempo real
     clientSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         
+        // Si no hay texto, mostrar todos
         if (query.length === 0) {
-            clientSearchResults.classList.remove('active');
-            clientSearchResults.innerHTML = '';
+            showAllClients();
             return;
         }
         
@@ -233,30 +238,8 @@ function initializeClientSelector() {
             (client.address && client.address.toLowerCase().includes(query))
         );
         
-        // Mostrar resultados
-        if (filtered.length > 0) {
-            clientSearchResults.innerHTML = filtered.slice(0, 5).map(client => `
-                <div class="client-result-item" onclick="selectClient('${client.id}')">
-                    <div class="client-result-name">${client.name}</div>
-                    <div class="client-result-info">
-                        <span><i class="fas fa-phone"></i> ${client.phone}</span>
-                        <span><i class="fas fa-map-marker-alt"></i> ${client.address || 'Sin dirección'}</span>
-                    </div>
-                </div>
-            `).join('');
-            clientSearchResults.classList.add('active');
-        } else {
-            clientSearchResults.innerHTML = `
-                <div class="client-result-empty">
-                    <i class="fas fa-user-slash"></i>
-                    <p>No se encontraron clientes</p>
-                    <a href="clientes.html" style="color: var(--primary-color); margin-top: 0.5rem; display: inline-block;">
-                        Agregar nuevo cliente
-                    </a>
-                </div>
-            `;
-            clientSearchResults.classList.add('active');
-        }
+        // Mostrar resultados filtrados
+        displayClientResults(filtered);
     });
     
     // Cerrar resultados al hacer click fuera
@@ -265,6 +248,56 @@ function initializeClientSelector() {
             clientSearchResults.classList.remove('active');
         }
     });
+}
+
+// Mostrar todos los clientes disponibles
+function showAllClients() {
+    const clientSearchResults = document.getElementById('clientSearchResults');
+    
+    if (allClients.length === 0) {
+        clientSearchResults.innerHTML = `
+            <div class="client-result-empty">
+                <i class="fas fa-user-slash"></i>
+                <p>No hay clientes registrados</p>
+                <a href="clientes.html" style="color: var(--primary-color); margin-top: 0.5rem; display: inline-block;">
+                    <i class="fas fa-user-plus"></i> Agregar primer cliente
+                </a>
+            </div>
+        `;
+        clientSearchResults.classList.add('active');
+        return;
+    }
+    
+    displayClientResults(allClients);
+}
+
+// Mostrar lista de clientes
+function displayClientResults(clients) {
+    const clientSearchResults = document.getElementById('clientSearchResults');
+    
+    if (clients.length > 0) {
+        clientSearchResults.innerHTML = clients.slice(0, 8).map(client => `
+            <div class="client-result-item" onclick="selectClient('${client.id}')">
+                <div class="client-result-name">${client.name}</div>
+                <div class="client-result-info">
+                    <span><i class="fas fa-phone"></i> ${client.phone}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${client.address || 'Sin dirección'}</span>
+                </div>
+            </div>
+        `).join('');
+        clientSearchResults.classList.add('active');
+    } else {
+        clientSearchResults.innerHTML = `
+            <div class="client-result-empty">
+                <i class="fas fa-user-slash"></i>
+                <p>No se encontraron clientes</p>
+                <a href="clientes.html" style="color: var(--primary-color); margin-top: 0.5rem; display: inline-block;">
+                    Agregar nuevo cliente
+                </a>
+            </div>
+        `;
+        clientSearchResults.classList.add('active');
+    }
 }
 
 // Seleccionar un cliente
