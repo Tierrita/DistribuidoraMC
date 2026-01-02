@@ -8,6 +8,8 @@ let orders = [];
 let currentOrdersTab = 'nuevo-pedido';
 let currentStatusFilter = 'todos';
 let currentCustomerData = null; // Almacenar datos del cliente actual
+let allClients = []; // Lista de clientes disponibles
+let selectedClient = null; // Cliente seleccionado actualmente
 
 // Elementos del DOM (se inicializarán cuando el DOM esté listo)
 let productsOrderGrid;
@@ -157,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeDOMElements();
     loadCartFromStorage();
     loadOrdersFromStorage();
+    loadClientsData(); // Cargar clientes disponibles
     updateCartBadge();
     initializeOrdersEventListeners();
     initializeTabsEventListeners();
@@ -178,12 +181,132 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProductsForOrders();
         renderOrdersHistory();
         renderPosCart();
-        initializeCustomerForm();
+        initializeClientSelector();
     }, 100);
 });
 
 // ============================================
-// NUEVO FLUJO: DATOS DEL CLIENTE PRIMERO
+// CARGAR CLIENTES DESDE SUPABASE/LOCALSTORAGE
+// ============================================
+
+async function loadClientsData() {
+    try {
+        // Intentar cargar desde Supabase si está disponible
+        if (window.supabaseDB && typeof window.supabaseDB.getClientes === 'function') {
+            allClients = await window.supabaseDB.getClientes();
+            console.log('✅ Clientes cargados desde Supabase:', allClients.length);
+        } else {
+            throw new Error('Supabase no disponible');
+        }
+    } catch (error) {
+        console.warn('⚠️ Cargando clientes desde localStorage:', error);
+        const stored = localStorage.getItem('distributoraMC_clients');
+        allClients = stored ? JSON.parse(stored) : [];
+    }
+}
+
+// ============================================
+// SELECTOR DE CLIENTES
+// ============================================
+
+function initializeClientSelector() {
+    const clientSearchInput = document.getElementById('clientSearch');
+    const clientSearchResults = document.getElementById('clientSearchResults');
+    const btnContinueOrder = document.getElementById('btnContinueOrder');
+    
+    if (!clientSearchInput) return;
+    
+    // Búsqueda en tiempo real
+    clientSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        
+        if (query.length === 0) {
+            clientSearchResults.classList.remove('active');
+            clientSearchResults.innerHTML = '';
+            return;
+        }
+        
+        // Filtrar clientes
+        const filtered = allClients.filter(client => 
+            client.name.toLowerCase().includes(query) ||
+            client.phone.includes(query) ||
+            (client.address && client.address.toLowerCase().includes(query))
+        );
+        
+        // Mostrar resultados
+        if (filtered.length > 0) {
+            clientSearchResults.innerHTML = filtered.slice(0, 5).map(client => `
+                <div class="client-result-item" onclick="selectClient('${client.id}')">
+                    <div class="client-result-name">${client.name}</div>
+                    <div class="client-result-info">
+                        <span><i class="fas fa-phone"></i> ${client.phone}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${client.address || 'Sin dirección'}</span>
+                    </div>
+                </div>
+            `).join('');
+            clientSearchResults.classList.add('active');
+        } else {
+            clientSearchResults.innerHTML = `
+                <div class="client-result-empty">
+                    <i class="fas fa-user-slash"></i>
+                    <p>No se encontraron clientes</p>
+                    <a href="clientes.html" style="color: var(--primary-color); margin-top: 0.5rem; display: inline-block;">
+                        Agregar nuevo cliente
+                    </a>
+                </div>
+            `;
+            clientSearchResults.classList.add('active');
+        }
+    });
+    
+    // Cerrar resultados al hacer click fuera
+    document.addEventListener('click', (e) => {
+        if (!clientSearchInput.contains(e.target) && !clientSearchResults.contains(e.target)) {
+            clientSearchResults.classList.remove('active');
+        }
+    });
+}
+
+// Seleccionar un cliente
+function selectClient(clientId) {
+    selectedClient = allClients.find(c => c.id === clientId);
+    
+    if (!selectedClient) return;
+    
+    // Ocultar búsqueda y mostrar cliente seleccionado
+    document.getElementById('clientSearch').value = '';
+    document.getElementById('clientSearchResults').classList.remove('active');
+    document.getElementById('clientSearchResults').innerHTML = '';
+    
+    const selectedInfo = document.getElementById('selectedClientInfo');
+    document.getElementById('selectedClientName').textContent = selectedClient.name;
+    document.getElementById('selectedClientPhone').textContent = selectedClient.phone;
+    document.getElementById('selectedClientAddress').textContent = selectedClient.address || 'Sin dirección';
+    
+    if (selectedClient.email) {
+        document.getElementById('selectedClientEmail').textContent = selectedClient.email;
+        document.getElementById('selectedClientEmailWrapper').style.display = 'block';
+    } else {
+        document.getElementById('selectedClientEmailWrapper').style.display = 'none';
+    }
+    
+    selectedInfo.style.display = 'block';
+    document.getElementById('btnContinueOrder').disabled = false;
+    
+    console.log('✅ Cliente seleccionado:', selectedClient.name);
+}
+
+// Cambiar cliente seleccionado
+function changeSelectedClient() {
+    selectedClient = null;
+    document.getElementById('selectedClientInfo').style.display = 'none';
+    document.getElementById('clientSearch').value = '';
+    document.getElementById('btnContinueOrder').disabled = true;
+    document.getElementById('clientSearch').focus();
+}
+
+// ============================================
+// NUEVO FLUJO: CLIENTE SELECCIONADO → PEDIDO
 // ============================================
 
 function initializeCustomerForm() {
@@ -196,23 +319,32 @@ function initializeCustomerForm() {
 function handleCustomerDataSubmit(e) {
     e.preventDefault();
     
-    const name = document.getElementById('newOrderCustomerName').value.trim();
-    const phone = document.getElementById('newOrderCustomerPhone').value.trim();
-    const address = document.getElementById('newOrderCustomerAddress').value.trim();
-    const email = document.getElementById('newOrderCustomerEmail').value.trim();
-    const notes = document.getElementById('newOrderNotes').value.trim();
-    
-    // Validaciones
-    if (name.length < 3) {
-        showNotification('El nombre debe tener al menos 3 caracteres', 'error');
+    if (!selectedClient) {
+        showNotification('Por favor selecciona un cliente', 'error');
         return;
     }
     
-    const phoneRegex = /^[\d\s\-\+\(\)]{7,20}$/;
-    if (!phoneRegex.test(phone)) {
-        showNotification('El teléfono debe tener entre 7 y 20 dígitos', 'error');
-        return;
-    }
+    // Guardar datos del cliente para el pedido
+    currentCustomerData = {
+        id: selectedClient.id,
+        name: selectedClient.name,
+        phone: selectedClient.phone,
+        address: selectedClient.address || '',
+        email: selectedClient.email || '',
+        notes: document.getElementById('newOrderNotes').value.trim()
+    };
+    
+    // Mostrar sección de armado de pedido
+    document.getElementById('customerDataSection').style.display = 'none';
+    document.getElementById('orderBuildSection').style.display = 'block';
+    
+    // Actualizar info del cliente en la barra superior
+    document.getElementById('displayCustomerName').textContent = currentCustomerData.name;
+    document.getElementById('displayCustomerAddress').textContent = currentCustomerData.address;
+    
+    console.log('✅ Cliente cargado para el pedido:', currentCustomerData);
+    showNotification(`Cliente ${currentCustomerData.name} cargado. Agrega productos al pedido.`, 'success');
+}
     
     if (address.length < 5) {
         showNotification('La dirección debe tener al menos 5 caracteres', 'error');
@@ -248,18 +380,16 @@ function handleCustomerDataSubmit(e) {
 }
 
 function editCustomerData() {
-    // Volver a mostrar el formulario de datos del cliente
+    // Volver a mostrar la selección de cliente
     document.getElementById('customerDataSection').style.display = 'block';
     document.getElementById('orderBuildSection').style.display = 'none';
     
-    // Rellenar con los datos actuales
-    if (currentCustomerData) {
-        document.getElementById('newOrderCustomerName').value = currentCustomerData.name;
-        document.getElementById('newOrderCustomerPhone').value = currentCustomerData.phone;
-        document.getElementById('newOrderCustomerAddress').value = currentCustomerData.address;
-        document.getElementById('newOrderCustomerEmail').value = currentCustomerData.email || '';
-        document.getElementById('newOrderNotes').value = currentCustomerData.notes || '';
-    }
+    // Resetear selección
+    selectedClient = null;
+    document.getElementById('selectedClientInfo').style.display = 'none';
+    document.getElementById('clientSearch').value = '';
+    document.getElementById('btnContinueOrder').disabled = true;
+    document.getElementById('clientSearch').focus();
 }
 
 function confirmNewOrder() {
@@ -307,11 +437,14 @@ function confirmNewOrder() {
     // Limpiar todo
     cart = [];
     currentCustomerData = null;
+    selectedClient = null;
     saveCartToStorage();
     updateCartBadge();
     
     // Resetear formulario y vista
     document.getElementById('customerDataForm').reset();
+    document.getElementById('selectedClientInfo').style.display = 'none';
+    document.getElementById('btnContinueOrder').disabled = true;
     document.getElementById('customerDataSection').style.display = 'block';
     document.getElementById('orderBuildSection').style.display = 'none';
     

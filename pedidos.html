@@ -57,37 +57,54 @@
             <!-- TAB: NUEVO PEDIDO -->
             <div id="tabNuevoPedido" class="tab-content active">
                 
-                <!-- PASO 1: Datos del Cliente (se muestra primero) -->
+                <!-- PASO 1: Selección de Cliente (se muestra primero) -->
                 <div id="customerDataSection" class="customer-data-section">
                     <div class="customer-data-card">
-                        <h3><i class="fas fa-user-circle"></i> Datos del Cliente</h3>
-                        <p class="section-description">Ingresa los datos del cliente antes de armar el pedido</p>
+                        <h3><i class="fas fa-user-circle"></i> Seleccionar Cliente</h3>
+                        <p class="section-description">Elige un cliente existente para crear el pedido</p>
                         
                         <form id="customerDataForm" class="customer-form">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="newOrderCustomerName">Nombre y Apellido *</label>
-                                    <input type="text" id="newOrderCustomerName" required placeholder="Juan Pérez" minlength="3" maxlength="100" autofocus>
+                            <!-- Búsqueda de Cliente -->
+                            <div class="form-group full-width">
+                                <label for="clientSearch">Buscar Cliente *</label>
+                                <div class="client-search-wrapper">
+                                    <input type="text" id="clientSearch" placeholder="Buscar por nombre o teléfono..." autocomplete="off" autofocus>
+                                    <i class="fas fa-search"></i>
                                 </div>
-                                <div class="form-group">
-                                    <label for="newOrderCustomerPhone">Teléfono *</label>
-                                    <input type="tel" id="newOrderCustomerPhone" required placeholder="011 4567-8900" pattern="[0-9\s\-\+\(\)]{7,20}">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label for="newOrderCustomerAddress">Dirección de Entrega *</label>
-                                    <input type="text" id="newOrderCustomerAddress" required placeholder="Av. Siempre Viva 123" minlength="5" maxlength="150">
-                                </div>
-                                <div class="form-group">
-                                    <label for="newOrderCustomerEmail">Email (opcional)</label>
-                                    <input type="email" id="newOrderCustomerEmail" placeholder="juan@ejemplo.com" maxlength="100">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label for="newOrderNotes">Notas del Pedido (opcional)</label>
-                                    <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales..." maxlength="500"></textarea>
+                                <div id="clientSearchResults" class="client-search-results"></div>
+                            </div>
+
+                            <!-- Cliente Seleccionado (oculto por defecto) -->
+                            <div id="selectedClientInfo" class="selected-client-info" style="display: none;">
+                                <div class="selected-client-card">
+                                    <div class="selected-client-header">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Cliente Seleccionado</span>
+                                    </div>
+                                    <div class="selected-client-details">
+                                        <p><strong id="selectedClientName"></strong></p>
+                                        <p><i class="fas fa-phone"></i> <span id="selectedClientPhone"></span></p>
+                                        <p><i class="fas fa-map-marker-alt"></i> <span id="selectedClientAddress"></span></p>
+                                        <p id="selectedClientEmailWrapper" style="display: none;"><i class="fas fa-envelope"></i> <span id="selectedClientEmail"></span></p>
+                                    </div>
+                                    <button type="button" class="btn-change-client" onclick="changeSelectedClient()">
+                                        <i class="fas fa-exchange-alt"></i> Cambiar Cliente
+                                    </button>
                                 </div>
                             </div>
+
+                            <!-- Notas del pedido -->
+                            <div class="form-group full-width">
+                                <label for="newOrderNotes">Notas del Pedido (opcional)</label>
+                                <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales sobre este pedido..." maxlength="500"></textarea>
+                            </div>
+
+                            <!-- Botón de continuar (se activa solo cuando hay cliente seleccionado) -->
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-large">
+                                <a href="clientes.html" class="btn btn-secondary">
+                                    <i class="fas fa-user-plus"></i> Nuevo Cliente
+                                </a>
+                                <button type="submit" class="btn btn-primary btn-large" id="btnContinueOrder" disabled>
                                     <i class="fas fa-arrow-right"></i> Continuar al Pedido
                                 </button>
                             </div>
