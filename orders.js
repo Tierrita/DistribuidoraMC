@@ -153,6 +153,7 @@ async function updateInventoryStock(cartItems) {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', () => {
+    initializeDOMElements();
     loadCartFromStorage();
     loadOrdersFromStorage();
     updateCartBadge();
@@ -160,11 +161,22 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeTabsEventListeners();
     loadDynamicOrderFilters();
     
-    // Esperar a que el inventario esté cargado
+    // Cargar inventario si no está disponible
+    if (!window.inventory || window.inventory.length === 0) {
+        const storedInventory = localStorage.getItem('distributoraMC_inventory');
+        if (storedInventory) {
+            window.inventory = JSON.parse(storedInventory);
+            console.log('✅ Inventario cargado desde localStorage:', window.inventory.length, 'productos');
+        } else {
+            console.warn('⚠️ No hay productos en el inventario. Ve a Inventario para agregar productos.');
+        }
+    }
+    
+    // Esperar un momento para que todo se inicialice
     setTimeout(() => {
         renderProductsForOrders();
         renderOrdersHistory();
-        renderPosCart(); // Renderizar POS cart
+        renderPosCart();
     }, 100);
 });
 
