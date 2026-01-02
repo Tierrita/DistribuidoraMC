@@ -7,6 +7,7 @@ let cart = [];
 let orders = [];
 let currentOrdersTab = 'nuevo-pedido';
 let currentStatusFilter = 'todos';
+let currentCustomerData = null; // Almacenar datos del cliente actual
 
 // Elementos del DOM (se inicializarán cuando el DOM esté listo)
 let productsOrderGrid;
@@ -177,8 +178,151 @@ document.addEventListener('DOMContentLoaded', () => {
         renderProductsForOrders();
         renderOrdersHistory();
         renderPosCart();
+        initializeCustomerForm();
     }, 100);
 });
+
+// ============================================
+// NUEVO FLUJO: DATOS DEL CLIENTE PRIMERO
+// ============================================
+
+function initializeCustomerForm() {
+    const customerDataForm = document.getElementById('customerDataForm');
+    if (customerDataForm) {
+        customerDataForm.addEventListener('submit', handleCustomerDataSubmit);
+    }
+}
+
+function handleCustomerDataSubmit(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('newOrderCustomerName').value.trim();
+    const phone = document.getElementById('newOrderCustomerPhone').value.trim();
+    const address = document.getElementById('newOrderCustomerAddress').value.trim();
+    const email = document.getElementById('newOrderCustomerEmail').value.trim();
+    const notes = document.getElementById('newOrderNotes').value.trim();
+    
+    // Validaciones
+    if (name.length < 3) {
+        showNotification('El nombre debe tener al menos 3 caracteres', 'error');
+        return;
+    }
+    
+    const phoneRegex = /^[\d\s\-\+\(\)]{7,20}$/;
+    if (!phoneRegex.test(phone)) {
+        showNotification('El teléfono debe tener entre 7 y 20 dígitos', 'error');
+        return;
+    }
+    
+    if (address.length < 5) {
+        showNotification('La dirección debe tener al menos 5 caracteres', 'error');
+        return;
+    }
+    
+    if (email.length > 0) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showNotification('El email no es válido', 'error');
+            return;
+        }
+    }
+    
+    // Guardar datos del cliente
+    currentCustomerData = {
+        name: name,
+        phone: phone,
+        address: address,
+        email: email,
+        notes: notes
+    };
+    
+    // Mostrar sección de armado de pedido
+    document.getElementById('customerDataSection').style.display = 'none';
+    document.getElementById('orderBuildSection').style.display = 'block';
+    
+    // Mostrar datos del cliente en la barra
+    document.getElementById('displayCustomerName').textContent = name;
+    document.getElementById('displayCustomerAddress').textContent = address;
+    
+    showNotification(`Pedido para ${name} - Ahora agrega productos`, 'success');
+}
+
+function editCustomerData() {
+    // Volver a mostrar el formulario de datos del cliente
+    document.getElementById('customerDataSection').style.display = 'block';
+    document.getElementById('orderBuildSection').style.display = 'none';
+    
+    // Rellenar con los datos actuales
+    if (currentCustomerData) {
+        document.getElementById('newOrderCustomerName').value = currentCustomerData.name;
+        document.getElementById('newOrderCustomerPhone').value = currentCustomerData.phone;
+        document.getElementById('newOrderCustomerAddress').value = currentCustomerData.address;
+        document.getElementById('newOrderCustomerEmail').value = currentCustomerData.email || '';
+        document.getElementById('newOrderNotes').value = currentCustomerData.notes || '';
+    }
+}
+
+function confirmNewOrder() {
+    if (cart.length === 0) {
+        showNotification('Agrega al menos un producto al pedido', 'error');
+        return;
+    }
+    
+    if (!currentCustomerData) {
+        showNotification('Error: No hay datos del cliente', 'error');
+        editCustomerData();
+        return;
+    }
+    
+    // Validar stock antes de confirmar
+    for (const item of cart) {
+        const product = window.inventory.find(p => p.id === item.productId);
+        if (!product) {
+            showNotification(`El producto "${item.name}" ya no está disponible`, 'error');
+            return;
+        }
+        if (product.stock < item.quantity) {
+            showNotification(`Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error');
+            return;
+        }
+    }
+    
+    // Crear pedido
+    const orderData = {
+        id: Date.now(),
+        orderNumber: generateOrderNumber(),
+        date: new Date().toISOString(),
+        customer: currentCustomerData,
+        items: [...cart],
+        total: getCartTotal(),
+        status: 'pending'
+    };
+    
+    orders.push(orderData);
+    saveOrdersToStorage();
+    
+    // Descontar stock
+    updateInventoryStock(cart);
+    
+    // Limpiar todo
+    cart = [];
+    currentCustomerData = null;
+    saveCartToStorage();
+    updateCartBadge();
+    
+    // Resetear formulario y vista
+    document.getElementById('customerDataForm').reset();
+    document.getElementById('customerDataSection').style.display = 'block';
+    document.getElementById('orderBuildSection').style.display = 'none';
+    
+    // Mostrar confirmación
+    openConfirmationModal(orderData.orderNumber);
+    renderProductsForOrders();
+    renderPosCart();
+    renderOrdersHistory();
+    
+    showNotification('¡Pedido confirmado exitosamente!', 'success');
+}
 
 // ============================================
 // CARGAR FILTROS DINÁMICOS EN PEDIDOS

@@ -59,78 +59,135 @@
 
             <!-- TAB: NUEVO PEDIDO -->
             <div id="tabNuevoPedido" class="tab-content active">
-                <!-- Layout POS: 2 Columnas -->
-                <div class="pos-layout">
-                    <!-- COLUMNA IZQUIERDA: Productos -->
-                    <div class="pos-products-section">
-                        <!-- Controles de Pedidos -->
-                        <div class="orders-controls">
-                            <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="orderSearchInput" placeholder="Buscar producto...">
+                
+                <!-- PASO 1: Datos del Cliente (se muestra primero) -->
+                <div id="customerDataSection" class="customer-data-section">
+                    <div class="customer-data-card">
+                        <h3><i class="fas fa-user-circle"></i> Datos del Cliente</h3>
+                        <p class="section-description">Ingresa los datos del cliente antes de armar el pedido</p>
+                        
+                        <form id="customerDataForm" class="customer-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="newOrderCustomerName">Nombre y Apellido *</label>
+                                    <input type="text" id="newOrderCustomerName" required placeholder="Juan Pérez" minlength="3" maxlength="100" autofocus>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newOrderCustomerPhone">Teléfono *</label>
+                                    <input type="tel" id="newOrderCustomerPhone" required placeholder="011 4567-8900" pattern="[0-9\s\-\+\(\)]{7,20}">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="newOrderCustomerAddress">Dirección de Entrega *</label>
+                                    <input type="text" id="newOrderCustomerAddress" required placeholder="Av. Siempre Viva 123" minlength="5" maxlength="150">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newOrderCustomerEmail">Email (opcional)</label>
+                                    <input type="email" id="newOrderCustomerEmail" placeholder="juan@ejemplo.com" maxlength="100">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="newOrderNotes">Notas del Pedido (opcional)</label>
+                                    <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales..." maxlength="500"></textarea>
+                                </div>
                             </div>
-                            <div class="filter-buttons" id="orderFilterButtons">
-                                <button class="filter-btn active" data-category="todos">
-                                    <i class="fas fa-th"></i> Todos
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary btn-large">
+                                    <i class="fas fa-arrow-right"></i> Continuar al Pedido
                                 </button>
-                                <!-- Los filtros dinámicos se cargarán aquí -->
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- PASO 2: Armar Pedido (se muestra después de llenar datos del cliente) -->
+                <div id="orderBuildSection" class="order-build-section" style="display: none;">
+                    
+                    <!-- Info del Cliente (resumida) -->
+                    <div class="customer-info-bar">
+                        <div class="customer-info-display">
+                            <i class="fas fa-user"></i>
+                            <div>
+                                <strong id="displayCustomerName">Cliente</strong>
+                                <span id="displayCustomerAddress">Dirección</span>
                             </div>
                         </div>
-
-                        <!-- Grid de Productos -->
-                        <div class="products-order-grid" id="productsOrderGrid">
-                            <!-- Los productos se cargarán dinámicamente -->
-                        </div>
-
-                        <!-- Mensaje cuando no hay productos -->
-                        <div id="emptyOrderState" class="empty-state" style="display: none;">
-                            <i class="fas fa-box-open"></i>
-                            <h3>No hay productos disponibles</h3>
-                            <p>Agrega productos en la sección de inventario primero</p>
-                            <a href="inventario.html" class="btn btn-primary">
-                                <i class="fas fa-plus"></i> Ir a Inventario
-                            </a>
-                        </div>
+                        <button class="btn-edit-customer" onclick="editCustomerData()">
+                            <i class="fas fa-edit"></i> Editar Datos
+                        </button>
                     </div>
 
-                    <!-- COLUMNA DERECHA: Carrito Activo -->
-                    <div class="pos-cart-section">
-                        <div class="pos-cart-sticky">
-                            <div class="pos-cart-header">
-                                <h3><i class="fas fa-shopping-cart"></i> Pedido Actual</h3>
-                                <button class="btn-clear-mini" onclick="clearCartFromPos()" id="btnClearCartPos">
-                                    <i class="fas fa-trash"></i> Vaciar
+                    <!-- Layout POS: 2 Columnas -->
+                    <div class="pos-layout">
+                        <!-- COLUMNA IZQUIERDA: Productos -->
+                        <div class="pos-products-section">
+                            <!-- Controles de Pedidos -->
+                            <div class="orders-controls">
+                                <div class="search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="orderSearchInput" placeholder="Buscar producto...">
+                                </div>
+                                <div class="filter-buttons" id="orderFilterButtons">
+                                    <button class="filter-btn active" data-category="todos">
+                                        <i class="fas fa-th"></i> Todos
+                                    </button>
+                                    <!-- Los filtros dinámicos se cargarán aquí -->
+                                </div>
+                            </div>
+
+                            <!-- Grid de Productos -->
+                            <div class="products-order-grid" id="productsOrderGrid">
+                                <!-- Los productos se cargarán dinámicamente -->
+                            </div>
+
+                            <!-- Mensaje cuando no hay productos -->
+                            <div id="emptyOrderState" class="empty-state" style="display: none;">
+                                <i class="fas fa-box-open"></i>
+                                <h3>No hay productos disponibles</h3>
+                                <p>Agrega productos en la sección de inventario primero</p>
+                                <a href="inventario.html" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Ir a Inventario
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA DERECHA: Carrito Activo -->
+                        <div class="pos-cart-section">
+                            <div class="pos-cart-sticky">
+                                <div class="pos-cart-header">
+                                    <h3><i class="fas fa-shopping-cart"></i> Pedido Actual</h3>
+                                    <button class="btn-clear-mini" onclick="clearCartFromPos()" id="btnClearCartPos">
+                                        <i class="fas fa-trash"></i> Vaciar
+                                    </button>
+                                </div>
+
+                                <!-- Items del carrito -->
+                                <div class="pos-cart-items" id="posCartItems">
+                                    <div class="pos-empty-cart">
+                                        <i class="fas fa-cart-arrow-down"></i>
+                                        <p>Agrega productos al pedido</p>
+                                    </div>
+                                </div>
+
+                                <!-- Totales -->
+                                <div class="pos-cart-summary">
+                                    <div class="pos-summary-row">
+                                        <span>Subtotal:</span>
+                                        <strong id="posSubtotal">$0.00</strong>
+                                    </div>
+                                    <div class="pos-summary-row pos-total">
+                                        <span>Total a Cobrar:</span>
+                                        <strong id="posTotal">$0.00</strong>
+                                    </div>
+                                    <div class="pos-items-count">
+                                        <i class="fas fa-box"></i>
+                                        <span id="posItemsCount">0 productos</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón de Checkout -->
+                                <button class="btn-checkout-pos" id="btnCheckoutPos" onclick="confirmNewOrder()" disabled>
+                                    <i class="fas fa-check-circle"></i> Confirmar Pedido
                                 </button>
                             </div>
-
-                            <!-- Items del carrito -->
-                            <div class="pos-cart-items" id="posCartItems">
-                                <div class="pos-empty-cart">
-                                    <i class="fas fa-cart-arrow-down"></i>
-                                    <p>Agrega productos para comenzar</p>
-                                </div>
-                            </div>
-
-                            <!-- Totales -->
-                            <div class="pos-cart-summary">
-                                <div class="pos-summary-row">
-                                    <span>Subtotal:</span>
-                                    <strong id="posSubtotal">$0.00</strong>
-                                </div>
-                                <div class="pos-summary-row pos-total">
-                                    <span>Total:</span>
-                                    <strong id="posTotal">$0.00</strong>
-                                </div>
-                                <div class="pos-items-count">
-                                    <i class="fas fa-box"></i>
-                                    <span id="posItemsCount">0 productos</span>
-                                </div>
-                            </div>
-
-                            <!-- Botón de Checkout -->
-                            <button class="btn-checkout-pos" id="btnCheckoutPos" disabled>
-                                <i class="fas fa-check-circle"></i> Finalizar Pedido
-                            </button>
                         </div>
                     </div>
                 </div>
