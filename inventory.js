@@ -880,7 +880,8 @@ async function handleProductFormSubmit(e) {
         costPrice: parseFloat(document.getElementById('productCostPrice').value),
         price: parseFloat(document.getElementById('productPrice').value),
         stock: parseInt(document.getElementById('productStock').value),
-        minStock: parseInt(document.getElementById('productMinStock').value)
+        minStock: parseInt(document.getElementById('productMinStock').value),
+        unit: 'kg'
     };
     
     // ===== VALIDACIONES =====
