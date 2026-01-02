@@ -1108,6 +1108,15 @@ function handleTabChange(e) {
     
     if (targetTab === 'nuevo-pedido') {
         tabNuevoPedido.classList.add('active');
+        
+        // Mantener el estado: si ya hay datos del cliente, mostrar sección de productos
+        if (currentCustomerData) {
+            document.getElementById('customerDataSection').style.display = 'none';
+            document.getElementById('orderBuildSection').style.display = 'block';
+        } else {
+            document.getElementById('customerDataSection').style.display = 'block';
+            document.getElementById('orderBuildSection').style.display = 'none';
+        }
     } else {
         tabHistorial.classList.add('active');
         renderOrdersHistory();
