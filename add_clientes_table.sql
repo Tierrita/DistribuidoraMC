@@ -2,7 +2,11 @@
 -- TABLA DE CLIENTES - Distribuidora MC
 -- ============================================
 
--- Crear tabla de clientes
+-- OPCIÓN 1: Si quieres empezar de cero (ESTO BORRA TODOS LOS DATOS)
+-- Descomenta la siguiente línea si quieres recrear la tabla desde cero:
+-- DROP TABLE IF EXISTS clientes CASCADE;
+
+-- OPCIÓN 2: Crear tabla si no existe
 CREATE TABLE IF NOT EXISTS clientes (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
@@ -14,6 +18,13 @@ CREATE TABLE IF NOT EXISTS clientes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Agregar columnas faltantes si la tabla ya existía
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS address TEXT;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS cuit TEXT;
+ALTER TABLE clientes ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Índices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_clientes_name ON clientes(name);
@@ -79,14 +90,14 @@ ON CONFLICT DO NOTHING;
 -- ============================================
 
 -- Ver los clientes creados
-SELECT * FROM clientes ORDER BY name;
+SELECT id, name, email, phone, cuit FROM clientes ORDER BY name;
 
--- Ver información de la tabla
+-- Ver estructura de la tabla
 SELECT 
     column_name,
     data_type,
-    is_nullable,
-    column_default
+    is_nullable
 FROM information_schema.columns
-WHERE table_name = 'clientes'
+WHERE table_schema = 'public' 
+AND table_name = 'clientes'
 ORDER BY ordinal_position;
