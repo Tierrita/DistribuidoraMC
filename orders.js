@@ -278,11 +278,11 @@ function displayClientResults(clients) {
     
     if (clients.length > 0) {
         clientSearchResults.innerHTML = clients.slice(0, 8).map(client => `
-            <div class="client-result-item" onclick="selectClient('${client.id}')">
-                <div class="client-result-name">${client.name}</div>
+            <div class="client-result-item" onclick="selectClient(${client.id})">
+                <div class="client-result-name">${escapeHtml(client.name)}</div>
                 <div class="client-result-info">
-                    <span><i class="fas fa-phone"></i> ${client.phone}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${client.address || 'Sin dirección'}</span>
+                    <span><i class="fas fa-phone"></i> ${escapeHtml(client.phone)}</span>
+                    <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(client.address || 'Sin dirección')}</span>
                 </div>
             </div>
         `).join('');
@@ -303,7 +303,7 @@ function displayClientResults(clients) {
 
 // Seleccionar un cliente
 function selectClient(clientId) {
-    selectedClient = allClients.find(c => c.id === clientId);
+    selectedClient = allClients.find(c => c.id == clientId);
     
     if (!selectedClient) return;
     
@@ -1625,6 +1625,17 @@ function exportSingleOrder(orderId) {
     
     // Descargar el archivo
     XLSX.writeFile(wb, `Pedido_${order.orderNumber}.xlsx`);
+}
+
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ============================================
