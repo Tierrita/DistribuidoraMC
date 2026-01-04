@@ -7,8 +7,9 @@ function initializeSampleData() {
     // Solo inicializar si no hay datos
     const existingInventory = localStorage.getItem('distributoraMC_inventory');
     const existingCategories = localStorage.getItem('distributoraMC_categories');
+    const existingClients = localStorage.getItem('distributoraMC_clients');
     
-    if (existingInventory || existingCategories) {
+    if (existingInventory && existingCategories && existingClients) {
         console.log('✅ Ya existen datos en el sistema');
         return;
     }
@@ -127,15 +128,62 @@ function initializeSampleData() {
         }
     ];
     
+    // Clientes de muestra
+    const sampleClients = [
+        {
+            id: 1,
+            name: 'Restaurant El Buen Sabor',
+            email: 'pedidos@elbuensabor.com',
+            phone: '11-2345-6789',
+            address: 'Av. Corrientes 1234, CABA',
+            cuit: '30-12345678-9'
+        },
+        {
+            id: 2,
+            name: 'Parrilla Don José',
+            email: 'donjose@gmail.com',
+            phone: '11-3456-7890',
+            address: 'San Martín 456, San Isidro',
+            cuit: '30-23456789-0'
+        },
+        {
+            id: 3,
+            name: 'Pizzería La Napolitana',
+            email: 'info@lanapolitana.com',
+            phone: '11-4567-8901',
+            address: 'Belgrano 789, Vicente López',
+            cuit: '30-34567890-1'
+        },
+        {
+            id: 4,
+            name: 'Almacén Santa Rosa',
+            email: 'santarosa@hotmail.com',
+            phone: '11-5678-9012',
+            address: 'Rivadavia 234, Quilmes',
+            cuit: '30-45678901-2'
+        },
+        {
+            id: 5,
+            name: 'Café & Bar Central',
+            email: 'cafecentral@gmail.com',
+            phone: '11-6789-0123',
+            address: 'Florida 567, CABA',
+            cuit: '30-56789012-3'
+        }
+    ];
+    
     // Guardar en localStorage
     localStorage.setItem('distributoraMC_categories', JSON.stringify(sampleCategories));
     localStorage.setItem('distributoraMC_inventory', JSON.stringify(sampleProducts));
+    localStorage.setItem('distributoraMC_clients', JSON.stringify(sampleClients));
     localStorage.setItem('distributoraMC_nextCategoryId', '5');
     localStorage.setItem('distributoraMC_nextProductId', '9');
+    localStorage.setItem('distributoraMC_nextClientId', '6');
     
     console.log('✅ Datos de muestra inicializados correctamente');
     console.log(`📦 ${sampleProducts.length} productos agregados`);
     console.log(`🏷️ ${sampleCategories.length} categorías agregadas`);
+    console.log(`👥 ${sampleClients.length} clientes agregados`);
     
     // Recargar la página para que se carguen los datos
     alert('¡Datos de muestra inicializados! La página se recargará para mostrar los productos.');

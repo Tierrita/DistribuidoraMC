@@ -177,10 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Esperar un momento para que todo se inicialice
-    setTimeout(() => {
+    setTimeout(async () => {
         renderProductsForOrders();
         renderOrdersHistory();
         renderPosCart();
+        await loadClientsData();
         initializeClientSelector();
     }, 100);
 });
