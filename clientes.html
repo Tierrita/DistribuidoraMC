@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -68,9 +70,14 @@
             <div class="clientes-table-container">
                 <div class="table-header">
                     <h2>Lista de Clientes</h2>
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="clientSearchInput" placeholder="Buscar cliente...">
+                    <div class="table-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="clientSearchInput" placeholder="Buscar cliente...">
+                        </div>
+                        <button class="btn btn-primary" id="btnAddClient">
+                            <i class="fas fa-plus"></i> Agregar Cliente
+                        </button>
                     </div>
                 </div>
                 
@@ -79,10 +86,11 @@
                         <tr>
                             <th>Nombre</th>
                             <th>Teléfono</th>
-                            <th>Dirección</th>
                             <th>Email</th>
-                            <th>Total Pedidos</th>
-                            <th>Último Pedido</th>
+                            <th>Dirección</th>
+                            <th>CUIT</th>
+                            <th>Notas</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="clientsTableBody">
@@ -94,11 +102,59 @@
                 <div id="emptyClientsState" class="empty-state" style="display: none;">
                     <i class="fas fa-user-slash"></i>
                     <h3>No hay clientes registrados</h3>
-                    <p>Los clientes se registran automáticamente al hacer pedidos</p>
+                    <p>Haz clic en "Agregar Cliente" para comenzar</p>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Modal Agregar/Editar Cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Agregar Cliente</h3>
+                <span class="close" id="clientModalClose">&times;</span>
+            </div>
+            <form id="clientForm">
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="clientName">Nombre del Cliente *</label>
+                        <input type="text" id="clientName" required placeholder="Ej: Restaurant El Buen Sabor">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientPhone">Teléfono</label>
+                        <input type="tel" id="clientPhone" placeholder="Ej: 11-2345-6789">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientEmail">Email</label>
+                        <input type="email" id="clientEmail" placeholder="Ej: cliente@ejemplo.com">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="clientAddress">Dirección</label>
+                        <input type="text" id="clientAddress" placeholder="Ej: Av. Corrientes 1234, CABA">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientCuit">CUIT</label>
+                        <input type="text" id="clientCuit" placeholder="Ej: 30-12345678-9">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="clientNotes">Notas</label>
+                        <textarea id="clientNotes" rows="3" placeholder="Notas adicionales sobre el cliente..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelClient">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -126,80 +182,7 @@
     </footer>
 
     <script src="script.js"></script>
-    <script>
-        // Cargar clientes desde pedidos
-        document.addEventListener('DOMContentLoaded', () => {
-            const orders = JSON.parse(localStorage.getItem('distributoraMC_orders') || '[]');
-            const clientsTableBody = document.getElementById('clientsTableBody');
-            const emptyClientsState = document.getElementById('emptyClientsState');
-            
-            // Agrupar pedidos por cliente
-            const clientsMap = new Map();
-            
-            orders.forEach(order => {
-                const customerName = order.customer?.name;
-                if (!customerName) return;
-                
-                if (!clientsMap.has(customerName)) {
-                    clientsMap.set(customerName, {
-                        name: customerName,
-                        phone: order.customer.phone || '',
-                        address: order.customer.address || '',
-                        email: order.customer.email || '',
-                        orders: [],
-                        totalSpent: 0
-                    });
-                }
-                
-                const client = clientsMap.get(customerName);
-                client.orders.push(order);
-                client.totalSpent += order.total || 0;
-            });
-            
-            const clients = Array.from(clientsMap.values());
-            
-            // Actualizar stats
-            document.getElementById('totalClients').textContent = clients.length;
-            document.getElementById('activeClients').textContent = clients.length;
-            
-            // Renderizar tabla
-            if (clients.length === 0) {
-                clientsTableBody.innerHTML = '';
-                emptyClientsState.style.display = 'flex';
-                return;
-            }
-            
-            emptyClientsState.style.display = 'none';
-            
-            clientsTableBody.innerHTML = clients
-                .sort((a, b) => b.orders.length - a.orders.length)
-                .map(client => {
-                    const lastOrder = client.orders[client.orders.length - 1];
-                    const lastOrderDate = new Date(lastOrder.date).toLocaleDateString('es-AR');
-                    
-                    return `
-                        <tr>
-                            <td><strong>${client.name}</strong></td>
-                            <td>${client.phone}</td>
-                            <td>${client.address}</td>
-                            <td>${client.email || '-'}</td>
-                            <td><strong>${client.orders.length}</strong> pedidos</td>
-                            <td>${lastOrderDate}</td>
-                        </tr>
-                    `;
-                }).join('');
-            
-            // Búsqueda
-            document.getElementById('clientSearchInput').addEventListener('input', (e) => {
-                const search = e.target.value.toLowerCase();
-                const rows = clientsTableBody.querySelectorAll('tr');
-                
-                rows.forEach(row => {
-                    const text = row.textContent.toLowerCase();
-                    row.style.display = text.includes(search) ? '' : 'none';
-                });
-            });
-        });
-    </script>
+    <script src="supabase-config.js"></script>
+    <script src="clientes.js"></script>
 </body>
 </html>
