@@ -86,10 +86,7 @@
                         <tr>
                             <th>Nombre</th>
                             <th>Teléfono</th>
-                            <th>Email</th>
                             <th>Dirección</th>
-                            <th>CUIT</th>
-                            <th>Notas</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -116,35 +113,20 @@
                 <span class="close" id="clientModalClose">&times;</span>
             </div>
             <form id="clientForm">
-                <div class="form-grid">
-                    <div class="form-group full-width">
+                <div class="form-simple">
+                    <div class="form-group">
                         <label for="clientName">Nombre del Cliente *</label>
                         <input type="text" id="clientName" required placeholder="Ej: Restaurant El Buen Sabor">
                     </div>
                     
                     <div class="form-group">
-                        <label for="clientPhone">Teléfono</label>
-                        <input type="tel" id="clientPhone" placeholder="Ej: 11-2345-6789">
+                        <label for="clientPhone">Teléfono *</label>
+                        <input type="tel" id="clientPhone" required placeholder="Ej: 11-2345-6789">
                     </div>
                     
                     <div class="form-group">
-                        <label for="clientEmail">Email</label>
-                        <input type="email" id="clientEmail" placeholder="Ej: cliente@ejemplo.com">
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label for="clientAddress">Dirección</label>
-                        <input type="text" id="clientAddress" placeholder="Ej: Av. Corrientes 1234, CABA">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="clientCuit">CUIT</label>
-                        <input type="text" id="clientCuit" placeholder="Ej: 30-12345678-9">
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label for="clientNotes">Notas</label>
-                        <textarea id="clientNotes" rows="3" placeholder="Notas adicionales sobre el cliente..."></textarea>
+                        <label for="clientAddress">Dirección *</label>
+                        <input type="text" id="clientAddress" required placeholder="Ej: Av. Corrientes 1234, CABA">
                     </div>
                 </div>
                 

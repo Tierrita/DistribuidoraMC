@@ -74,9 +74,8 @@ function renderClients(filter = '') {
             const searchStr = filter.toLowerCase();
             return (
                 client.name?.toLowerCase().includes(searchStr) ||
-                client.email?.toLowerCase().includes(searchStr) ||
                 client.phone?.toLowerCase().includes(searchStr) ||
-                client.cuit?.toLowerCase().includes(searchStr)
+                client.address?.toLowerCase().includes(searchStr)
             );
         })
         : clients;
@@ -95,10 +94,7 @@ function renderClients(filter = '') {
             <tr data-client-id="${client.id}">
                 <td><strong>${escapeHtml(client.name)}</strong></td>
                 <td>${escapeHtml(client.phone || '-')}</td>
-                <td>${escapeHtml(client.email || '-')}</td>
                 <td>${escapeHtml(client.address || '-')}</td>
-                <td>${escapeHtml(client.cuit || '-')}</td>
-                <td>${escapeHtml(client.notes || '-')}</td>
                 <td>
                     <div class="action-buttons">
                         <button class="btn-icon btn-edit" onclick="editClient(${client.id})" title="Editar">
@@ -149,16 +145,13 @@ async function saveClient(e) {
     
     const clientData = {
         name: document.getElementById('clientName').value.trim(),
-        email: document.getElementById('clientEmail').value.trim() || null,
-        phone: document.getElementById('clientPhone').value.trim() || null,
-        address: document.getElementById('clientAddress').value.trim() || null,
-        cuit: document.getElementById('clientCuit').value.trim() || null,
-        notes: document.getElementById('clientNotes').value.trim() || null
+        phone: document.getElementById('clientPhone').value.trim(),
+        address: document.getElementById('clientAddress').value.trim()
     };
     
     // Validación
-    if (!clientData.name) {
-        showNotification('El nombre del cliente es requerido', 'error');
+    if (!clientData.name || !clientData.phone || !clientData.address) {
+        showNotification('Todos los campos son requeridos', 'error');
         return;
     }
     
@@ -218,11 +211,8 @@ function editClient(id) {
     modalTitle.textContent = 'Editar Cliente';
     
     document.getElementById('clientName').value = client.name || '';
-    document.getElementById('clientEmail').value = client.email || '';
     document.getElementById('clientPhone').value = client.phone || '';
     document.getElementById('clientAddress').value = client.address || '';
-    document.getElementById('clientCuit').value = client.cuit || '';
-    document.getElementById('clientNotes').value = client.notes || '';
     
     clientModal.style.display = 'flex';
 }
