@@ -2,12 +2,12 @@
 -- TABLA DE CLIENTES - Distribuidora MC
 -- ============================================
 
--- OPCIÓN 1: Si quieres empezar de cero (ESTO BORRA TODOS LOS DATOS)
--- Descomenta la siguiente línea si quieres recrear la tabla desde cero:
--- DROP TABLE IF EXISTS clientes CASCADE;
+-- IMPORTANTE: Esta línea borra la tabla y todos sus datos
+-- Si la tabla tiene datos que quieres conservar, coméntalos primero
+DROP TABLE IF EXISTS clientes CASCADE;
 
--- OPCIÓN 2: Crear tabla si no existe
-CREATE TABLE IF NOT EXISTS clientes (
+-- Crear tabla de clientes desde cero
+CREATE TABLE clientes (
     id BIGSERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT,
@@ -18,13 +18,6 @@ CREATE TABLE IF NOT EXISTS clientes (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-
--- Agregar columnas faltantes si la tabla ya existía
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS email TEXT;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS phone TEXT;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS address TEXT;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS cuit TEXT;
-ALTER TABLE clientes ADD COLUMN IF NOT EXISTS notes TEXT;
 
 -- Índices para mejorar el rendimiento
 CREATE INDEX IF NOT EXISTS idx_clientes_name ON clientes(name);
@@ -76,26 +69,13 @@ USING (true);
 -- DATOS DE EJEMPLO
 -- ============================================
 
--- Insertar clientes de ejemplo (solo si no existen)
-INSERT INTO clientes (name, email, phone, address, cuit, notes) 
-SELECT 'Restaurant El Buen Sabor', 'pedidos@elbuensabor.com', '11-2345-6789', 'Av. Corrientes 1234, CABA', '30-12345678-9', 'Cliente frecuente - Descuento 10%'
-WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE name = 'Restaurant El Buen Sabor');
-
-INSERT INTO clientes (name, email, phone, address, cuit, notes) 
-SELECT 'Parrilla Don José', 'donjose@gmail.com', '11-3456-7890', 'San Martín 456, San Isidro', '30-23456789-0', 'Pedidos semanales de carne'
-WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE name = 'Parrilla Don José');
-
-INSERT INTO clientes (name, email, phone, address, cuit, notes) 
-SELECT 'Pizzería La Napolitana', 'info@lanapolitana.com', '11-4567-8901', 'Belgrano 789, Vicente López', '30-34567890-1', 'Especialidad en quesos'
-WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE name = 'Pizzería La Napolitana');
-
-INSERT INTO clientes (name, email, phone, address, cuit, notes) 
-SELECT 'Almacén Santa Rosa', 'santarosa@hotmail.com', '11-5678-9012', 'Rivadavia 234, Quilmes', '30-45678901-2', 'Compras mayoristas'
-WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE name = 'Almacén Santa Rosa');
-
-INSERT INTO clientes (name, email, phone, address, cuit, notes) 
-SELECT 'Café & Bar Central', 'cafecentral@gmail.com', '11-6789-0123', 'Florida 567, CABA', '30-56789012-3', 'Pedidos diarios de fiambres'
-WHERE NOT EXISTS (SELECT 1 FROM clientes WHERE name = 'Café & Bar Central');
+-- Insertar clientes de ejemplo
+INSERT INTO clientes (name, email, phone, address, cuit, notes) VALUES
+('Restaurant El Buen Sabor', 'pedidos@elbuensabor.com', '11-2345-6789', 'Av. Corrientes 1234, CABA', '30-12345678-9', 'Cliente frecuente - Descuento 10%'),
+('Parrilla Don José', 'donjose@gmail.com', '11-3456-7890', 'San Martín 456, San Isidro', '30-23456789-0', 'Pedidos semanales de carne'),
+('Pizzería La Napolitana', 'info@lanapolitana.com', '11-4567-8901', 'Belgrano 789, Vicente López', '30-34567890-1', 'Especialidad en quesos'),
+('Almacén Santa Rosa', 'santarosa@hotmail.com', '11-5678-9012', 'Rivadavia 234, Quilmes', '30-45678901-2', 'Compras mayoristas'),
+('Café & Bar Central', 'cafecentral@gmail.com', '11-6789-0123', 'Florida 567, CABA', '30-56789012-3', 'Pedidos diarios de fiambres');
 
 -- ============================================
 -- VERIFICACIÓN
