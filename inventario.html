@@ -43,26 +43,13 @@
     <!-- Sección de Inventario -->
     <section class="inventory">
         <div class="container">
-            <!-- Tabs de Navegación -->
-            <div class="inventory-tabs">
-                <button class="tab-btn active" data-tab="productos">
-                    <i class="fas fa-box"></i> Productos
-                </button>
-                <button class="tab-btn" data-tab="categorias">
-                    <i class="fas fa-tags"></i> Categorías
-                </button>
-            </div>
-
             <!-- TAB: PRODUCTOS -->
             <div id="tabProductos" class="tab-content active">
                 <!-- Controles del Inventario -->
                 <div class="inventory-controls">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar producto...">
-                    </div>
-                    <div class="filter-buttons" id="dynamicFilters">
-                        <!-- Los filtros se cargarán dinámicamente desde las categorías -->
+                        <input type="text" id="searchInput" placeholder="Buscar por ID, nombre o marca...">
                     </div>
                     <button class="btn-add-product" id="btnAddProduct">
                         <i class="fas fa-plus"></i> Agregar Producto
@@ -81,29 +68,11 @@
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-icon stock-low">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Stock Bajo</h4>
-                        <p class="stat-number" id="lowStock">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon stock-ok">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Stock Normal</h4>
-                        <p class="stat-number" id="normalStock">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
                     <div class="stat-icon value">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="stat-info">
-                        <h4>Valor Total</h4>
+                        <h4>Valor Total Inventario</h4>
                         <p class="stat-number" id="totalValue">$0</p>
                     </div>
                 </div>
@@ -114,13 +83,13 @@
                 <table class="inventory-table">
                     <thead>
                         <tr>
-                            <th>Código</th>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Precio Costo</th>
-                            <th>Precio Final</th>
-                            <th>Stock</th>
-                            <th>Estado</th>
+                            <th>ID</th>
+                            <th>Nombre del Producto</th>
+                            <th>Marca</th>
+                            <th>Peso (kg)</th>
+                            <th>Precio por kg</th>
+                            <th>Precio de Costo</th>
+                            <th>Precio de Venta</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -137,28 +106,6 @@
                 <p>Agrega tu primer producto haciendo clic en el botón "Agregar Producto"</p>
             </div>
             </div>
-
-            <!-- TAB: CATEGORÍAS -->
-            <div id="tabCategorias" class="tab-content">
-                <div class="categories-header">
-                    <h2><i class="fas fa-tags"></i> Gestión de Categorías</h2>
-                    <button class="btn-add-product" id="btnAddCategory">
-                        <i class="fas fa-plus"></i> Agregar Categoría
-                    </button>
-                </div>
-
-                <!-- Grid de Categorías -->
-                <div class="categories-grid" id="categoriesGrid">
-                    <!-- Las categorías se cargarán dinámicamente -->
-                </div>
-
-                <!-- Mensaje cuando no hay categorías -->
-                <div id="emptyCategoriesState" class="empty-state" style="display: none;">
-                    <i class="fas fa-tags"></i>
-                    <h3>No hay categorías creadas</h3>
-                    <p>Agrega tu primera categoría para organizar tus productos</p>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -172,74 +119,37 @@
                 </button>
             </div>
             <form id="productForm">
-                <!-- Campo oculto (auto-generado) -->
-                <input type="hidden" id="productCode">
+                <!-- Campo oculto para ID -->
+                <input type="hidden" id="productId">
                 
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label for="productName">Nombre del Producto</label>
                         <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium" maxlength="100" autofocus>
                     </div>
                     <div class="form-group">
-                        <label for="productCategory">Categoría</label>
-                        <select id="productCategory" required>
-                            <option value="">Seleccionar...</option>
-                            <!-- Las categorías se cargarán dinámicamente -->
-                        </select>
+                        <label for="productBrand">Marca</label>
+                        <input type="text" id="productBrand" required placeholder="Ej: La Serenísima" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="productWeight">Peso (kg)</label>
+                        <input type="number" id="productWeight" step="0.001" min="0.001" max="999" required placeholder="0.000">
+                    </div>
+                    <div class="form-group">
+                        <label for="productPricePerKg">Precio por kg ($)</label>
+                        <input type="number" id="productPricePerKg" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
                     </div>
                     <div class="form-group">
                         <label for="productCostPrice">Precio de Costo ($)</label>
                         <input type="number" id="productCostPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
                     </div>
                     <div class="form-group">
-                        <label for="productPrice">Precio Final ($)</label>
-                        <input type="number" id="productPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label for="productStock">Stock Actual</label>
-                        <input type="number" id="productStock" min="0" max="999999" required placeholder="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="productMinStock">Stock Mínimo</label>
-                        <input type="number" id="productMinStock" min="0" max="99999" required placeholder="10">
+                        <label for="productSalePrice">Precio de Venta ($)</label>
+                        <input type="number" id="productSalePrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
                     </div>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-cancel" id="btnCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal para Agregar/Editar Categoría -->
-    <div id="categoryModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="categoryModalTitle">Agregar Categoría</h2>
-                <button class="modal-close" id="categoryModalClose">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <form id="categoryForm">
-                <!-- Campos ocultos (auto-generados) -->
-                <input type="hidden" id="categoryIcon">
-                <input type="hidden" id="categoryColor">
-                
-                <div class="form-grid">
-                    <div class="form-group full-width">
-                        <label for="categoryName">Nombre de la Categoría</label>
-                        <input type="text" id="categoryName" required placeholder="Ej: Jamones, Quesos, Fiambres..." maxlength="50" autofocus>
-                    </div>
-                    <div class="form-group full-width">
-                        <label for="categoryDescription">Descripción (opcional)</label>
-                        <textarea id="categoryDescription" rows="4" placeholder="Descripción de la categoría..." maxlength="200"></textarea>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn btn-cancel" id="btnCancelCategory">Cancelar</button>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-save"></i> Guardar
                     </button>
@@ -286,7 +196,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js"></script>
     
-    <script src="sample-data.js"></script>
     <script src="script.js"></script>
     <script src="inventory.js"></script>
     <script src="orders.js"></script>

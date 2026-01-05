@@ -111,14 +111,12 @@ async function addProducto(producto) {
         const { data, error } = await supabaseClient
             .from('productos')
             .insert([{
-                code: producto.code,
                 name: producto.name,
-                category: producto.category,
-                cost_price: producto.costPrice || 0,
-                price: producto.price,
-                stock: producto.stock,
-                unit: producto.unit,
-                min_stock: producto.minStock || 0
+                brand: producto.brand,
+                weight: producto.weight,
+                price_per_kg: producto.pricePerKg,
+                cost_price: producto.costPrice,
+                sale_price: producto.salePrice
             }])
             .select();
         
@@ -135,14 +133,12 @@ async function updateProducto(id, producto) {
         const { data, error } = await supabaseClient
             .from('productos')
             .update({
-                code: producto.code,
                 name: producto.name,
-                category: producto.category,
-                cost_price: producto.costPrice || 0,
-                price: producto.price,
-                stock: producto.stock,
-                unit: producto.unit,
-                min_stock: producto.minStock || 0
+                brand: producto.brand,
+                weight: producto.weight,
+                price_per_kg: producto.pricePerKg,
+                cost_price: producto.costPrice,
+                sale_price: producto.salePrice
             })
             .eq('id', id)
             .select();
@@ -166,22 +162,6 @@ async function deleteProducto(id) {
         return true;
     } catch (error) {
         console.error('Error al eliminar producto:', error);
-        throw error;
-    }
-}
-
-async function updateStock(id, newStock) {
-    try {
-        const { data, error } = await supabaseClient
-            .from('productos')
-            .update({ stock: newStock })
-            .eq('id', id)
-            .select();
-        
-        if (error) throw error;
-        return data[0];
-    } catch (error) {
-        console.error('Error al actualizar stock:', error);
         throw error;
     }
 }
@@ -217,6 +197,6 @@ window.supabaseDB = {
     addProducto,
     updateProducto,
     deleteProducto,
-    updateStock,
-    verificarConexion
+    verificarConexion,
+    supabase: supabaseClient
 };
