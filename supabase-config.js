@@ -113,6 +113,7 @@ async function addProducto(producto) {
             .insert([{
                 name: producto.name,
                 brand: producto.brand,
+                category: producto.category,
                 weight: producto.weight,
                 price_per_kg: producto.pricePerKg,
                 cost_price: producto.costPrice,
@@ -135,6 +136,7 @@ async function updateProducto(id, producto) {
             .update({
                 name: producto.name,
                 brand: producto.brand,
+                category: producto.category,
                 weight: producto.weight,
                 price_per_kg: producto.pricePerKg,
                 cost_price: producto.costPrice,

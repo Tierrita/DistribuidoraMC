@@ -86,6 +86,7 @@
                             <th>ID</th>
                             <th>Nombre del Producto</th>
                             <th>Marca</th>
+                            <th>Categoría</th>
                             <th>Peso (kg)</th>
                             <th>Precio por kg</th>
                             <th>Precio de Costo</th>
@@ -130,6 +131,17 @@
                     <div class="form-group">
                         <label for="productBrand">Marca</label>
                         <input type="text" id="productBrand" required placeholder="Ej: La Serenísima" maxlength="50">
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategory">Categoría</label>
+                        <select id="productCategory" required>
+                            <option value="">Seleccionar categoría</option>
+                            <option value="quesos">Quesos</option>
+                            <option value="fiambres">Fiambres</option>
+                            <option value="embutidos">Embutidos</option>
+                            <option value="conservas">Conservas</option>
+                            <option value="aceitunas">Aceitunas</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="productWeight">Peso (kg)</label>

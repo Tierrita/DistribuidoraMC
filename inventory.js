@@ -29,6 +29,8 @@ const modalTitle = document.getElementById('modalTitle');
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🚀 Iniciando aplicación...');
+    
     // Verificar si Supabase está disponible
     if (typeof window.supabaseDB !== 'undefined') {
         try {
@@ -50,6 +52,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         loadDataFromLocalStorage();
     }
     
+    console.log('📦 Total productos cargados:', inventory.length);
+    console.log('📋 Productos:', inventory);
+    
     renderInventory();
     updateStats();
     initializeEventListeners();
@@ -63,10 +68,12 @@ async function loadDataFromSupabase() {
     try {
         // Cargar productos
         const prods = await window.supabaseDB.getProductos();
+        
         inventory = prods.map(prod => ({
             id: prod.id,
             name: prod.name,
             brand: prod.brand || '',
+            category: prod.category || '',
             weight: parseFloat(prod.weight) || 0,
             pricePerKg: parseFloat(prod.price_per_kg) || 0,
             costPrice: parseFloat(prod.cost_price) || 0,
@@ -76,7 +83,7 @@ async function loadDataFromSupabase() {
         // Actualizar variable global para pedidos
         window.inventory = inventory;
         
-        console.log(`✅ Cargados ${categories.length} categorías y ${inventory.length} productos desde Supabase`);
+        console.log(`✅ Cargados ${inventory.length} productos desde Supabase`);
     } catch (error) {
         console.error('Error al cargar datos de Supabase:', error);
         throw error;
@@ -256,6 +263,7 @@ function openModalForEdit(productId) {
         document.getElementById('productId').value = product.id;
         document.getElementById('productName').value = product.name;
         document.getElementById('productBrand').value = product.brand || '';
+        document.getElementById('productCategory').value = product.category || '';
         document.getElementById('productWeight').value = product.weight || 0;
         document.getElementById('productPricePerKg').value = product.pricePerKg || 0;
         document.getElementById('productCostPrice').value = product.costPrice || 0;
@@ -277,6 +285,7 @@ async function handleProductFormSubmit(e) {
     const productData = {
         name: document.getElementById('productName').value.trim(),
         brand: document.getElementById('productBrand').value.trim(),
+        category: document.getElementById('productCategory').value,
         weight: parseFloat(document.getElementById('productWeight').value),
         pricePerKg: parseFloat(document.getElementById('productPricePerKg').value),
         costPrice: parseFloat(document.getElementById('productCostPrice').value),
@@ -302,6 +311,13 @@ async function handleProductFormSubmit(e) {
     if (productData.brand.length === 0) {
         alert('La marca del producto no puede estar vacía');
         document.getElementById('productBrand').focus();
+        return;
+    }
+    
+    // 2b. Validar categoría seleccionada
+    if (!productData.category || productData.category === '') {
+        alert('Debes seleccionar una categoría');
+        document.getElementById('productCategory').focus();
         return;
     }
     
@@ -386,7 +402,6 @@ async function handleProductFormSubmit(e) {
         }
         
         renderInventory();
-        renderCategories(); // Actualizar contadores
         updateStats();
         closeProductModal();
     } catch (error) {
@@ -410,7 +425,6 @@ async function deleteProduct(productId) {
             }
             
             renderInventory();
-            renderCategories(); // Actualizar contadores
             updateStats();
             alert('Producto eliminado correctamente');
         } catch (error) {
@@ -429,12 +443,22 @@ function renderInventory(productsToRender = inventory) {
     
     emptyState.style.display = 'none';
     
+    const categoryLabels = {
+        'quesos': 'Quesos',
+        'fiambres': 'Fiambres',
+        'embutidos': 'Embutidos',
+        'conservas': 'Conservas',
+        'aceitunas': 'Aceitunas'
+    };
+    
     inventoryTableBody.innerHTML = productsToRender.map(product => {
+        const categoryDisplay = categoryLabels[product.category] || product.category || 'Sin categoría';
         return `
             <tr data-id="${product.id}">
                 <td><span class="product-code">${product.id}</span></td>
                 <td><strong>${product.name}</strong></td>
                 <td>${product.brand || 'Sin marca'}</td>
+                <td><span class="category-badge">${categoryDisplay}</span></td>
                 <td>${product.weight ? product.weight.toFixed(3) : '0.000'} kg</td>
                 <td class="price">$${product.pricePerKg ? product.pricePerKg.toFixed(2) : '0.00'}</td>
                 <td class="price">$${product.costPrice ? product.costPrice.toFixed(2) : '0.00'}</td>
