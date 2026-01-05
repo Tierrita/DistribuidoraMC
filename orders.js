@@ -181,29 +181,35 @@ function loadOrdersFromStorage() {
 
 function initializeOrdersEventListeners() {
     // Botón del carrito
-    cartButton.addEventListener('click', openCartModal);
+    if (cartButton) cartButton.addEventListener('click', openCartModal);
     
     // Cerrar modales
-    cartModalClose.addEventListener('click', closeCartModal);
-    checkoutModalClose.addEventListener('click', closeCheckoutModal);
-    btnCancelCheckout.addEventListener('click', closeCheckoutModal);
+    if (cartModalClose) cartModalClose.addEventListener('click', closeCartModal);
+    if (checkoutModalClose) checkoutModalClose.addEventListener('click', closeCheckoutModal);
+    if (btnCancelCheckout) btnCancelCheckout.addEventListener('click', closeCheckoutModal);
     
     // Click fuera del modal
-    cartModal.addEventListener('click', (e) => {
-        if (e.target === cartModal) closeCartModal();
-    });
+    if (cartModal) {
+        cartModal.addEventListener('click', (e) => {
+            if (e.target === cartModal) closeCartModal();
+        });
+    }
     
-    checkoutModal.addEventListener('click', (e) => {
-        if (e.target === checkoutModal) closeCheckoutModal();
-    });
+    if (checkoutModal) {
+        checkoutModal.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) closeCheckoutModal();
+        });
+    }
     
-    confirmationModal.addEventListener('click', (e) => {
-        if (e.target === confirmationModal) closeConfirmationModal();
-    });
+    if (confirmationModal) {
+        confirmationModal.addEventListener('click', (e) => {
+            if (e.target === confirmationModal) closeConfirmationModal();
+        });
+    }
     
     // Acciones del carrito
-    btnClearCart.addEventListener('click', clearCart);
-    btnCheckout.addEventListener('click', openCheckoutModal);
+    if (btnClearCart) btnClearCart.addEventListener('click', clearCart);
+    if (btnCheckout) btnCheckout.addEventListener('click', openCheckoutModal);
     
     // POS Cart Actions
     if (btnCheckoutPos) {
@@ -211,7 +217,7 @@ function initializeOrdersEventListeners() {
     }
     
     // Formulario de checkout
-    checkoutForm.addEventListener('submit', handleCheckoutSubmit);
+    if (checkoutForm) checkoutForm.addEventListener('submit', handleCheckoutSubmit);
     
     // Confirmación
     btnNewOrder.addEventListener('click', () => {
@@ -483,12 +489,15 @@ function clearCartFromPos() {
 
 function updateCartBadge() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartBadge.textContent = totalItems;
     
-    if (totalItems > 0) {
-        cartBadge.style.display = 'flex';
-    } else {
-        cartBadge.style.display = 'none';
+    if (cartBadge) {
+        cartBadge.textContent = totalItems;
+        
+        if (totalItems > 0) {
+            cartBadge.style.display = 'flex';
+        } else {
+            cartBadge.style.display = 'none';
+        }
     }
 }
 

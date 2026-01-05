@@ -1,219 +1,14 @@
 // ============================================
 // SISTEMA DE INVENTARIO V3 - Distribuidora MC
-// Con Gestión de Categorías y Productos + Supabase
+// Con Gestión Simplificada de Productos + Supabase
 // ============================================
-
-// ============================================
-// FUNCIONES AUXILIARES DE AUTO-GENERACIÓN
-// ============================================
-
-// Auto-sugerir ícono Font Awesome basado en el nombre de la categoría
-function autoSuggestIcon(categoryName) {
-    const name = categoryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    
-    const iconMap = {
-        'jamon': 'fa-drumstick-bite',
-        'jamones': 'fa-drumstick-bite',
-        'queso': 'fa-cheese',
-        'quesos': 'fa-cheese',
-        'fiambre': 'fa-bacon',
-        'fiambres': 'fa-bacon',
-        'salame': 'fa-bacon',
-        'salames': 'fa-bacon',
-        'chorizo': 'fa-hotdog',
-        'chorizos': 'fa-hotdog',
-        'mortadela': 'fa-bacon',
-        'mortadelas': 'fa-bacon',
-        'salchicha': 'fa-hotdog',
-        'salchichas': 'fa-hotdog',
-        'pan': 'fa-bread-slice',
-        'panes': 'fa-bread-slice',
-        'bebida': 'fa-bottle-water',
-        'bebidas': 'fa-bottle-water',
-        'lacteo': 'fa-cow',
-        'lacteos': 'fa-cow',
-        'leche': 'fa-cow',
-        'carne': 'fa-drumstick-bite',
-        'carnes': 'fa-drumstick-bite',
-        'pescado': 'fa-fish',
-        'pescados': 'fa-fish',
-        'vegetal': 'fa-carrot',
-        'vegetales': 'fa-carrot',
-        'verdura': 'fa-carrot',
-        'verduras': 'fa-carrot',
-        'fruta': 'fa-apple-whole',
-        'frutas': 'fa-apple-whole',
-        'postre': 'fa-ice-cream',
-        'postres': 'fa-ice-cream',
-        'dulce': 'fa-candy-cane',
-        'dulces': 'fa-candy-cane',
-        'golosina': 'fa-candy-cane',
-        'golosinas': 'fa-candy-cane',
-        'condimento': 'fa-pepper-hot',
-        'condimentos': 'fa-pepper-hot',
-        'especia': 'fa-pepper-hot',
-        'especias': 'fa-pepper-hot',
-        'pasta': 'fa-bowl-food',
-        'pastas': 'fa-bowl-food',
-        'conserva': 'fa-jar',
-        'conservas': 'fa-jar',
-        'enlatado': 'fa-jar',
-        'enlatados': 'fa-jar',
-        'aceite': 'fa-bottle-droplet',
-        'aceites': 'fa-bottle-droplet',
-        'vinagre': 'fa-bottle-droplet',
-        'vinagres': 'fa-bottle-droplet',
-        'snack': 'fa-cookie-bite',
-        'snacks': 'fa-cookie-bite',
-        'galleta': 'fa-cookie-bite',
-        'galletas': 'fa-cookie-bite',
-        'congelado': 'fa-snowflake',
-        'congelados': 'fa-snowflake',
-        'helado': 'fa-ice-cream',
-        'helados': 'fa-ice-cream'
-    };
-    
-    // Buscar coincidencias en el nombre
-    for (const [keyword, icon] of Object.entries(iconMap)) {
-        if (name.includes(keyword)) {
-            return icon;
-        }
-    }
-    
-    // Ícono por defecto
-    return 'fa-tag';
-}
-
-// Auto-generar color basado en el nombre de la categoría
-function autoSuggestColor(categoryName) {
-    const name = categoryName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    
-    const colorMap = {
-        'jamon': '#D32F2F',
-        'jamones': '#D32F2F',
-        'queso': '#FFA726',
-        'quesos': '#FFA726',
-        'fiambre': '#C2185B',
-        'fiambres': '#C2185B',
-        'salame': '#8B0000',
-        'salames': '#8B0000',
-        'chorizo': '#E64A19',
-        'chorizos': '#E64A19',
-        'mortadela': '#AD1457',
-        'mortadelas': '#AD1457',
-        'salchicha': '#D84315',
-        'salchichas': '#D84315',
-        'pan': '#F57C00',
-        'panes': '#F57C00',
-        'bebida': '#0288D1',
-        'bebidas': '#0288D1',
-        'lacteo': '#1976D2',
-        'lacteos': '#1976D2',
-        'leche': '#42A5F5',
-        'carne': '#C62828',
-        'carnes': '#C62828',
-        'pescado': '#0097A7',
-        'pescados': '#0097A7',
-        'vegetal': '#388E3C',
-        'vegetales': '#388E3C',
-        'verdura': '#4CAF50',
-        'verduras': '#4CAF50',
-        'fruta': '#8BC34A',
-        'frutas': '#8BC34A',
-        'postre': '#E91E63',
-        'postres': '#E91E63',
-        'dulce': '#F06292',
-        'dulces': '#F06292',
-        'golosina': '#EC407A',
-        'golosinas': '#EC407A',
-        'condimento': '#FF5722',
-        'condimentos': '#FF5722',
-        'especia': '#BF360C',
-        'especias': '#BF360C',
-        'pasta': '#FBC02D',
-        'pastas': '#FBC02D',
-        'conserva': '#689F38',
-        'conservas': '#689F38',
-        'enlatado': '#7CB342',
-        'enlatados': '#7CB342',
-        'aceite': '#F9A825',
-        'aceites': '#F9A825',
-        'vinagre': '#AFB42B',
-        'vinagres': '#AFB42B',
-        'snack': '#FF6F00',
-        'snacks': '#FF6F00',
-        'galleta': '#EF6C00',
-        'galletas': '#EF6C00',
-        'congelado': '#0288D1',
-        'congelados': '#0288D1',
-        'helado': '#AB47BC',
-        'helados': '#AB47BC'
-    };
-    
-    // Buscar coincidencias en el nombre
-    for (const [keyword, color] of Object.entries(colorMap)) {
-        if (name.includes(keyword)) {
-            return color;
-        }
-    }
-    
-    // Colores aleatorios por defecto
-    const defaultColors = [
-        '#8B0000', '#1976D2', '#388E3C', '#F57C00', '#7B1FA2',
-        '#C2185B', '#0097A7', '#5D4037', '#455A64', '#E64A19',
-        '#00796B', '#512DA8', '#FFA726', '#C62828', '#689F38'
-    ];
-    
-    return defaultColors[Math.floor(Math.random() * defaultColors.length)];
-}
-
-// Generar código automático para productos
-async function generateProductCode() {
-    let maxCode = 0;
-    
-    // Buscar el código más alto en el inventario actual
-    inventory.forEach(product => {
-        const codeNumber = parseInt(product.code.replace(/\D/g, ''));
-        if (!isNaN(codeNumber) && codeNumber > maxCode) {
-            maxCode = codeNumber;
-        }
-    });
-    
-    // Si usamos Supabase, también verificar en la base de datos
-    if (useSupabase && window.supabaseDB) {
-        try {
-            const { data, error } = await window.supabaseDB.supabase
-                .from('productos')
-                .select('code')
-                .order('code', { ascending: false })
-                .limit(1);
-                
-            if (data && data.length > 0) {
-                const dbCodeNumber = parseInt(data[0].code.replace(/\D/g, ''));
-                if (!isNaN(dbCodeNumber) && dbCodeNumber > maxCode) {
-                    maxCode = dbCodeNumber;
-                }
-            }
-        } catch (error) {
-            console.warn('No se pudo verificar códigos en Supabase:', error);
-        }
-    }
-    
-    // Generar el siguiente código
-    const nextNumber = maxCode + 1;
-    return `PROD${String(nextNumber).padStart(4, '0')}`;
-}
 
 // Variables globales
 let inventory = [];
-let categories = [];
 let editingProductId = null;
-let editingCategoryId = null;
-let currentTab = 'productos';
 
 // Contadores autoincrementales (solo para fallback)
 let nextProductId = 1;
-let nextCategoryId = 1;
 
 // Flag para saber si Supabase está disponible
 let useSupabase = false;
@@ -228,22 +23,6 @@ const btnCancel = document.getElementById('btnCancel');
 const searchInput = document.getElementById('searchInput');
 const emptyState = document.getElementById('emptyState');
 const modalTitle = document.getElementById('modalTitle');
-const dynamicFilters = document.getElementById('dynamicFilters');
-
-// Elementos del DOM - Categorías
-const categoriesGrid = document.getElementById('categoriesGrid');
-const categoryModal = document.getElementById('categoryModal');
-const categoryForm = document.getElementById('categoryForm');
-const btnAddCategory = document.getElementById('btnAddCategory');
-const categoryModalClose = document.getElementById('categoryModalClose');
-const btnCancelCategory = document.getElementById('btnCancelCategory');
-const emptyCategoriesState = document.getElementById('emptyCategoriesState');
-const categoryModalTitle = document.getElementById('categoryModalTitle');
-
-// Elementos del DOM - Tabs
-const tabButtons = document.querySelectorAll('.tab-btn');
-const tabProductos = document.getElementById('tabProductos');
-const tabCategorias = document.getElementById('tabCategorias');
 
 // ============================================
 // INICIALIZACIÓN
@@ -272,10 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     renderInventory();
-    renderCategories();
     updateStats();
-    loadCategoryFilters();
-    loadCategoryOptions();
     initializeEventListeners();
 });
 
@@ -285,28 +61,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadDataFromSupabase() {
     try {
-        // Cargar categorías
-        const cats = await window.supabaseDB.getCategorias();
-        categories = cats.map(cat => ({
-            id: cat.id,
-            name: cat.name,
-            slug: cat.slug || cat.name.toLowerCase(),
-            icon: cat.icon || 'fa-box',
-            color: cat.color || '#8B0000',
-            description: cat.description || ''
-        }));
-        
         // Cargar productos
         const prods = await window.supabaseDB.getProductos();
         inventory = prods.map(prod => ({
             id: prod.id,
-            code: prod.code,
             name: prod.name,
-            category: prod.category,
-            price: parseFloat(prod.price),
-            stock: prod.stock,
-            minStock: prod.min_stock || 0,
-            unit: prod.unit || 'kg'
+            brand: prod.brand || '',
+            weight: parseFloat(prod.weight) || 0,
+            pricePerKg: parseFloat(prod.price_per_kg) || 0,
+            costPrice: parseFloat(prod.cost_price) || 0,
+            salePrice: parseFloat(prod.sale_price) || 0
         }));
         
         // Actualizar variable global para pedidos
@@ -320,13 +84,7 @@ async function loadDataFromSupabase() {
 }
 
 function loadDataFromLocalStorage() {
-    loadCategoriesFromStorage();
     loadInventoryFromStorage();
-    
-    // Agregar categorías por defecto si está vacío
-    if (categories.length === 0) {
-        addDefaultCategories();
-    }
     
     // Agregar productos de ejemplo si está vacío
     if (inventory.length === 0) {
@@ -364,87 +122,6 @@ function loadInventoryFromStorage() {
     }
 }
 
-function saveCategoriestoStorage() {
-    localStorage.setItem('distributoraMC_categories', JSON.stringify(categories));
-    localStorage.setItem('distributoraMC_nextCategoryId', nextCategoryId.toString());
-}
-
-function loadCategoriesFromStorage() {
-    const stored = localStorage.getItem('distributoraMC_categories');
-    if (stored) {
-        categories = JSON.parse(stored);
-    }
-    
-    // Cargar el siguiente ID o calcularlo
-    const storedNextId = localStorage.getItem('distributoraMC_nextCategoryId');
-    if (storedNextId) {
-        nextCategoryId = parseInt(storedNextId);
-    } else {
-        // Calcular el siguiente ID basado en el máximo existente
-        nextCategoryId = categories.length > 0 
-            ? Math.max(...categories.map(c => c.id)) + 1 
-            : 1;
-    }
-}
-
-// ============================================
-// CATEGORÍAS POR DEFECTO
-// ============================================
-
-function addDefaultCategories() {
-    categories = [
-        {
-            id: nextCategoryId++,
-            name: 'Jamones',
-            slug: 'jamones',
-            icon: 'fa-bacon',
-            color: '#8B0000',
-            description: 'Jamón cocido, crudo, serrano y más variedades premium'
-        },
-        {
-            id: nextCategoryId++,
-            name: 'Quesos',
-            slug: 'quesos',
-            icon: 'fa-cheese',
-            color: '#FFA500',
-            description: 'Selección de quesos nacionales e importados'
-        },
-        {
-            id: nextCategoryId++,
-            name: 'Embutidos',
-            slug: 'embutidos',
-            icon: 'fa-sausage',
-            color: '#DC143C',
-            description: 'Salames, chorizos, mortadelas y más'
-        },
-        {
-            id: nextCategoryId++,
-            name: 'Carnes Frías',
-            slug: 'carnes',
-            icon: 'fa-drumstick-bite',
-            color: '#CD5C5C',
-            description: 'Pavita, pollo, lomito y especialidades'
-        },
-        {
-            id: nextCategoryId++,
-            name: 'Productos Gourmet',
-            slug: 'gourmet',
-            icon: 'fa-bread-slice',
-            color: '#DAA520',
-            description: 'Patés, aceitunas, pickles y delicatessen'
-        },
-        {
-            id: nextCategoryId++,
-            name: 'Pescados y Mariscos',
-            slug: 'pescados',
-            icon: 'fa-fish',
-            color: '#4682B4',
-            description: 'Conservas y productos del mar'
-        }
-    ];
-    saveCategoriestoStorage();
-}
-
 // ============================================
 // PRODUCTOS DE EJEMPLO
 // ============================================
@@ -453,57 +130,57 @@ function addSampleProducts() {
     inventory = [
         {
             id: nextProductId++,
-            code: 'JAM001',
             name: 'Jamón Cocido Premium',
-            category: 'jamones',
-            price: 2500,
-            stock: 45,
-            minStock: 20
+            brand: 'La Serenísima',
+            weight: 0.5,
+            pricePerKg: 5000,
+            costPrice: 2000,
+            salePrice: 2500
         },
         {
             id: nextProductId++,
-            code: 'QUE001',
             name: 'Queso Parmesano',
-            category: 'quesos',
-            price: 3200,
-            stock: 15,
-            minStock: 10
+            brand: 'Gallo',
+            weight: 0.3,
+            pricePerKg: 10000,
+            costPrice: 2500,
+            salePrice: 3000
         },
         {
             id: nextProductId++,
-            code: 'EMB001',
             name: 'Salame Milano',
-            category: 'embutidos',
-            price: 1800,
-            stock: 8,
-            minStock: 15
+            brand: 'Paladini',
+            weight: 0.4,
+            pricePerKg: 4500,
+            costPrice: 1500,
+            salePrice: 1800
         },
         {
             id: nextProductId++,
-            code: 'JAM002',
             name: 'Jamón Crudo Serrano',
-            category: 'jamones',
-            price: 4500,
-            stock: 25,
-            minStock: 10
+            brand: 'Cagnoli',
+            weight: 0.2,
+            pricePerKg: 22500,
+            costPrice: 3800,
+            salePrice: 4500
         },
         {
             id: nextProductId++,
-            code: 'QUE002',
             name: 'Queso Roquefort',
-            category: 'quesos',
-            price: 2800,
-            stock: 30,
-            minStock: 15
+            brand: 'Milkaut',
+            weight: 0.25,
+            pricePerKg: 11200,
+            costPrice: 2400,
+            salePrice: 2800
         },
         {
             id: nextProductId++,
-            code: 'CAR001',
             name: 'Pavita Natural',
-            category: 'carnes',
-            price: 1500,
-            stock: 5,
-            minStock: 20
+            brand: 'Swift',
+            weight: 0.6,
+            pricePerKg: 2500,
+            costPrice: 1200,
+            salePrice: 1500
         }
     ];
     saveInventoryToStorage();
@@ -518,7 +195,7 @@ function initializeEventListeners() {
     tabButtons.forEach(btn => {
         btn.addEventListener('click', handleTabChange);
     });
-    
+function initializeEventListeners() {
     // Productos
     btnAddProduct.addEventListener('click', openModalForAdd);
     modalClose.addEventListener('click', closeProductModal);
@@ -528,57 +205,11 @@ function initializeEventListeners() {
     });
     productForm.addEventListener('submit', handleProductFormSubmit);
     searchInput.addEventListener('input', handleSearch);
-    
-    // Categorías
-    btnAddCategory.addEventListener('click', openCategoryModalForAdd);
-    categoryModalClose.addEventListener('click', closeCategoryModal);
-    btnCancelCategory.addEventListener('click', closeCategoryModal);
-    categoryModal.addEventListener('click', (e) => {
-        if (e.target === categoryModal) closeCategoryModal();
-    });
-    categoryForm.addEventListener('submit', handleCategoryFormSubmit);
 }
 
 // ============================================
-// TABS
+// GESTIÓN DE PRODUCTOS
 // ============================================
-
-function handleTabChange(e) {
-    const targetTab = e.currentTarget.dataset.tab;
-    
-    // Actualizar botones
-    tabButtons.forEach(btn => btn.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    
-    // Actualizar contenido
-    tabProductos.classList.remove('active');
-    tabCategorias.classList.remove('active');
-    
-    if (targetTab === 'productos') {
-        tabProductos.classList.add('active');
-    } else {
-        tabCategorias.classList.add('active');
-    }
-    
-    currentTab = targetTab;
-}
-
-// ============================================
-// GESTIÓN DE CATEGORÍAS
-// ============================================
-
-function renderCategories() {
-    if (categories.length === 0) {
-        categoriesGrid.innerHTML = '';
-        emptyCategoriesState.style.display = 'flex';
-        return;
-    }
-    
-    emptyCategoriesState.style.display = 'none';
-    
-    categoriesGrid.innerHTML = categories.map(cat => {
-        const productCount = inventory.filter(p => p.category === cat.slug).length;
-        
         return `
             <div class="category-card" style="border-left: 4px solid ${cat.color}">
                 <div class="category-card-header">
@@ -605,230 +236,6 @@ function renderCategories() {
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function openCategoryModalForAdd() {
-    editingCategoryId = null;
-    categoryModalTitle.textContent = 'Agregar Categoría';
-    categoryForm.reset();
-    document.getElementById('categoryColor').value = '#8B0000';
-    categoryModal.classList.add('active');
-}
-
-function openCategoryModalForEdit(categoryId) {
-    editingCategoryId = categoryId;
-    categoryModalTitle.textContent = 'Editar Categoría';
-    
-    const category = categories.find(c => c.id === categoryId);
-    if (category) {
-        document.getElementById('categoryName').value = category.name;
-        document.getElementById('categoryIcon').value = category.icon;
-        document.getElementById('categoryColor').value = category.color;
-        document.getElementById('categoryDescription').value = category.description || '';
-    }
-    
-    categoryModal.classList.add('active');
-}
-
-function closeCategoryModal() {
-    categoryModal.classList.remove('active');
-    categoryForm.reset();
-    editingCategoryId = null;
-}
-
-async function handleCategoryFormSubmit(e) {
-    e.preventDefault();
-    
-    const name = document.getElementById('categoryName').value.trim();
-    const slug = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '-');
-    const description = document.getElementById('categoryDescription').value.trim();
-    
-    // Auto-generar ícono y color
-    const icon = autoSuggestIcon(name);
-    const color = autoSuggestColor(name);
-    
-    // ===== VALIDACIONES =====
-    
-    // 1. Validar nombre no vacío
-    if (name.length === 0) {
-        alert('El nombre de la categoría no puede estar vacío');
-        document.getElementById('categoryName').focus();
-        return;
-    }
-    
-    // 2. Validar longitud del nombre
-    if (name.length > 50) {
-        alert('El nombre de la categoría es demasiado largo (máximo 50 caracteres)');
-        document.getElementById('categoryName').focus();
-        return;
-    }
-    
-    // 3. Validar nombre duplicado (solo para categorías nuevas o si cambió el nombre)
-    if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.name !== name) {
-        if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-            alert('Ya existe una categoría con ese nombre');
-            document.getElementById('categoryName').focus();
-            return;
-        }
-    }
-    
-    // 4. Validar slug duplicado
-    if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.slug !== slug) {
-        if (categories.some(c => c.slug === slug)) {
-            alert('Ya existe una categoría similar con ese nombre');
-            document.getElementById('categoryName').focus();
-            return;
-        }
-    }
-    
-    // 5. Validar longitud de descripción
-    if (description.length > 200) {
-        alert('La descripción es demasiado larga (máximo 200 caracteres)');
-        document.getElementById('categoryDescription').focus();
-        return;
-    }
-    
-    // ===== FIN VALIDACIONES =====
-    
-    const categoryData = {
-        name: name,
-        slug: slug,
-        icon: icon,
-        color: color,
-        description: description
-    };
-    
-    try {
-        if (editingCategoryId) {
-            // Editar categoría existente
-            if (useSupabase) {
-                const oldCategory = categories.find(c => c.id === editingCategoryId);
-                const oldSlug = oldCategory?.slug;
-                
-                await window.supabaseDB.updateCategoria(editingCategoryId, categoryData);
-                
-                // Si cambió el slug, actualizar productos relacionados
-                if (oldSlug && oldSlug !== slug) {
-                    const productsToUpdate = inventory.filter(p => p.category === oldSlug);
-                    for (const product of productsToUpdate) {
-                        await window.supabaseDB.updateProducto(product.id, { category: slug });
-                    }
-                }
-                
-                await loadDataFromSupabase();
-            } else {
-                const index = categories.findIndex(c => c.id === editingCategoryId);
-                if (index !== -1) {
-                    const oldSlug = categories[index].slug;
-                    categories[index] = { ...categories[index], ...categoryData };
-                    
-                    // Actualizar productos que usan esta categoría
-                    inventory.forEach(product => {
-                        if (product.category === oldSlug) {
-                            product.category = slug;
-                        }
-                    });
-                    
-                    saveInventoryToStorage();
-                    saveCategoriestoStorage();
-                }
-            }
-            alert('Categoría actualizada correctamente');
-        } else {
-            // Agregar nueva categoría
-            if (useSupabase) {
-                await window.supabaseDB.addCategoria(categoryData);
-                await loadDataFromSupabase();
-            } else {
-                const newCategory = {
-                    id: nextCategoryId++,
-                    ...categoryData
-                };
-                categories.push(newCategory);
-                saveCategoriestoStorage();
-            }
-            alert('Categoría agregada correctamente');
-        }
-        
-        renderCategories();
-        loadCategoryFilters();
-        loadCategoryOptions();
-        closeCategoryModal();
-    } catch (error) {
-        console.error('Error al guardar categoría:', error);
-        alert('Error al guardar la categoría');
-    }
-}
-
-async function deleteCategory(categoryId) {
-    const category = categories.find(c => c.id === categoryId);
-    if (!category) return;
-    
-    // Verificar si hay productos usando esta categoría
-    const productsInCategory = inventory.filter(p => p.category === category.slug).length;
-    
-    if (productsInCategory > 0) {
-        alert(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`);
-        return;
-    }
-    
-    if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
-        try {
-            if (useSupabase) {
-                await window.supabaseDB.deleteCategoria(categoryId);
-                await loadDataFromSupabase();
-            } else {
-                categories = categories.filter(c => c.id !== categoryId);
-                saveCategoriestoStorage();
-            }
-            
-            renderCategories();
-            loadCategoryFilters();
-            loadCategoryOptions();
-            alert('Categoría eliminada correctamente');
-        } catch (error) {
-            console.error('Error al eliminar categoría:', error);
-            alert('Error al eliminar la categoría');
-        }
-    }
-}
-
-// ============================================
-// CARGAR FILTROS DINÁMICOS
-// ============================================
-
-function loadCategoryFilters() {
-    dynamicFilters.innerHTML = `
-        <button class="filter-btn active" data-category="todos">
-            <i class="fas fa-th"></i> Todos
-        </button>
-        ${categories.map(cat => `
-            <button class="filter-btn" data-category="${cat.slug}">
-                <i class="fas ${cat.icon}"></i> ${cat.name}
-            </button>
-        `).join('')}
-    `;
-    
-    // Agregar event listeners a los nuevos botones
-    const filterButtons = document.querySelectorAll('#dynamicFilters .filter-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', handleFilter);
-    });
-}
-
-function loadCategoryOptions() {
-    const select = document.getElementById('productCategory');
-    select.innerHTML = `
-        <option value="">Seleccionar...</option>
-        ${categories.map(cat => `
-            <option value="${cat.slug}">${cat.name}</option>
-        `).join('')}
-    `;
-}
-
 // ============================================
 // GESTIÓN DE PRODUCTOS
 // ============================================
@@ -846,13 +253,13 @@ function openModalForEdit(productId) {
     
     const product = inventory.find(p => p.id === productId);
     if (product) {
-        document.getElementById('productCode').value = product.code;
+        document.getElementById('productId').value = product.id;
         document.getElementById('productName').value = product.name;
-        document.getElementById('productCategory').value = product.category;
+        document.getElementById('productBrand').value = product.brand || '';
+        document.getElementById('productWeight').value = product.weight || 0;
+        document.getElementById('productPricePerKg').value = product.pricePerKg || 0;
         document.getElementById('productCostPrice').value = product.costPrice || 0;
-        document.getElementById('productPrice').value = product.price;
-        document.getElementById('productStock').value = product.stock;
-        document.getElementById('productMinStock').value = product.minStock;
+        document.getElementById('productSalePrice').value = product.salePrice || 0;
     }
     
     productModal.classList.add('active');
@@ -867,19 +274,13 @@ function closeProductModal() {
 async function handleProductFormSubmit(e) {
     e.preventDefault();
     
-    // Auto-generar código para productos nuevos
-    const code = editingProductId ? 
-        inventory.find(p => p.id === editingProductId)?.code : 
-        await generateProductCode();
-    
     const productData = {
-        code: code,
         name: document.getElementById('productName').value.trim(),
-        category: document.getElementById('productCategory').value,
+        brand: document.getElementById('productBrand').value.trim(),
+        weight: parseFloat(document.getElementById('productWeight').value),
+        pricePerKg: parseFloat(document.getElementById('productPricePerKg').value),
         costPrice: parseFloat(document.getElementById('productCostPrice').value),
-        price: parseFloat(document.getElementById('productPrice').value),
-        stock: parseInt(document.getElementById('productStock').value),
-        minStock: parseInt(document.getElementById('productMinStock').value)
+        salePrice: parseFloat(document.getElementById('productSalePrice').value)
     };
     
     // ===== VALIDACIONES =====
@@ -897,60 +298,59 @@ async function handleProductFormSubmit(e) {
         return;
     }
     
-    // 2. Validar precio de costo mayor a 0
+    // 2. Validar marca no vacía
+    if (productData.brand.length === 0) {
+        alert('La marca del producto no puede estar vacía');
+        document.getElementById('productBrand').focus();
+        return;
+    }
+    
+    // 3. Validar peso mayor a 0
+    if (productData.weight <= 0 || isNaN(productData.weight)) {
+        alert('El peso debe ser mayor a 0');
+        document.getElementById('productWeight').focus();
+        return;
+    }
+    
+    // 4. Validar precio por kg mayor a 0
+    if (productData.pricePerKg <= 0 || isNaN(productData.pricePerKg)) {
+        alert('El precio por kg debe ser mayor a 0');
+        document.getElementById('productPricePerKg').focus();
+        return;
+    }
+    
+    // 5. Validar precio de costo mayor a 0
     if (productData.costPrice <= 0 || isNaN(productData.costPrice)) {
         alert('El precio de costo debe ser mayor a 0');
         document.getElementById('productCostPrice').focus();
         return;
     }
     
-    // 3. Validar precio final mayor a 0
-    if (productData.price <= 0 || isNaN(productData.price)) {
-        alert('El precio final debe ser mayor a 0');
-        document.getElementById('productPrice').focus();
+    // 6. Validar precio de venta mayor a 0
+    if (productData.salePrice <= 0 || isNaN(productData.salePrice)) {
+        alert('El precio de venta debe ser mayor a 0');
+        document.getElementById('productSalePrice').focus();
         return;
     }
     
-    // 4. Validar precio máximo razonable
-    if (productData.price > 9999999) {
-        alert('El precio es demasiado alto');
-        document.getElementById('productPrice').focus();
+    // 7. Validar precio máximo razonable
+    if (productData.pricePerKg > 9999999 || productData.costPrice > 9999999 || productData.salePrice > 9999999) {
+        alert('Uno de los precios es demasiado alto');
         return;
     }
     
-    // 5. Advertir si precio final es menor al precio de costo
-    if (productData.price < productData.costPrice) {
-        if (!confirm('El precio final es menor al precio de costo. ¿Deseas continuar de todos modos?')) {
+    // 8. Validar peso máximo razonable
+    if (productData.weight > 999) {
+        alert('El peso es demasiado alto (máximo 999 kg)');
+        document.getElementById('productWeight').focus();
+        return;
+    }
+    
+    // 9. Advertir si precio de venta es menor al precio de costo
+    if (productData.salePrice < productData.costPrice) {
+        if (!confirm('El precio de venta es menor al precio de costo. ¿Deseas continuar de todos modos?')) {
             return;
         }
-    }
-    
-    // 6. Validar stock no negativo
-    if (productData.stock < 0) {
-        alert('El stock no puede ser negativo');
-        document.getElementById('productStock').focus();
-        return;
-    }
-    
-    // 7. Validar stock mínimo no negativo
-    if (productData.minStock < 0) {
-        alert('El stock mínimo no puede ser negativo');
-        document.getElementById('productMinStock').focus();
-        return;
-    }
-    
-    // 8. Validar que stock mínimo sea menor al stock actual (advertencia)
-    if (productData.minStock > productData.stock && productData.stock > 0) {
-        if (!confirm('El stock actual es menor al stock mínimo. ¿Deseas continuar de todos modos?')) {
-            return;
-        }
-    }
-    
-    // 9. Validar categoría seleccionada
-    if (!productData.category) {
-        alert('Debes seleccionar una categoría');
-        document.getElementById('productCategory').focus();
-        return;
     }
     
     // ===== FIN VALIDACIONES =====
@@ -1030,36 +430,17 @@ function renderInventory(productsToRender = inventory) {
     emptyState.style.display = 'none';
     
     inventoryTableBody.innerHTML = productsToRender.map(product => {
-        const stockStatus = getStockStatus(product.stock, product.minStock);
-        const category = categories.find(c => c.slug === product.category);
-        const categoryName = category ? category.name : product.category;
-        const categoryIcon = category ? category.icon : 'fa-box';
-        const costPrice = product.costPrice || 0;
-        
         return `
             <tr data-id="${product.id}">
-                <td><span class="product-code">${product.code}</span></td>
+                <td><span class="product-code">${product.id}</span></td>
                 <td><strong>${product.name}</strong></td>
-                <td>
-                    <span class="category-badge" style="background: ${category?.color}20; color: ${category?.color}">
-                        <i class="fas ${categoryIcon}"></i>
-                        ${categoryName}
-                    </span>
-                </td>
-                <td class="price">$${costPrice.toFixed(2)}</td>
-                <td class="price">$${product.price.toFixed(2)}</td>
-                <td><strong>${product.stock}</strong> unidades</td>
-                <td>
-                    <span class="stock-badge ${stockStatus.class}">
-                        <i class="${stockStatus.icon}"></i>
-                        ${stockStatus.text}
-                    </span>
-                </td>
+                <td>${product.brand || 'Sin marca'}</td>
+                <td>${product.weight ? product.weight.toFixed(3) : '0.000'} kg</td>
+                <td class="price">$${product.pricePerKg ? product.pricePerKg.toFixed(2) : '0.00'}</td>
+                <td class="price">$${product.costPrice ? product.costPrice.toFixed(2) : '0.00'}</td>
+                <td class="price">$${product.salePrice ? product.salePrice.toFixed(2) : '0.00'}</td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-icon btn-success" onclick="quickAddToOrder(${product.id})" title="Agregar al pedido" ${product.stock === 0 ? 'disabled' : ''}>
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
                         <button class="btn-icon btn-edit" onclick="openModalForEdit(${product.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -1101,40 +482,23 @@ function getStockStatus(stock, minStock) {
 
 function updateStats() {
     const totalProducts = inventory.length;
-    const lowStock = inventory.filter(p => p.stock <= p.minStock && p.stock > 0).length;
-    const normalStock = inventory.filter(p => p.stock > p.minStock).length;
-    const totalValue = inventory.reduce((sum, p) => sum + (p.price * p.stock), 0);
+    const totalValue = inventory.reduce((sum, p) => sum + (p.pricePerKg * p.weight), 0);
     
-    document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('lowStock').textContent = lowStock;
-    document.getElementById('normalStock').textContent = normalStock;
-    document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+    const totalProductsEl = document.getElementById('totalProducts');
+    const totalValueEl = document.getElementById('totalValue');
+    
+    if (totalProductsEl) totalProductsEl.textContent = totalProducts;
+    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toFixed(2)}`;
 }
 
 function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
     const filtered = inventory.filter(product => 
         product.name.toLowerCase().includes(searchTerm) ||
-        product.code.toLowerCase().includes(searchTerm)
+        product.brand.toLowerCase().includes(searchTerm) ||
+        product.id.toString().includes(searchTerm)
     );
     renderInventory(filtered);
-}
-
-function handleFilter(e) {
-    const category = e.currentTarget.dataset.category;
-    
-    // Actualizar botón activo
-    const filterButtons = document.querySelectorAll('#dynamicFilters .filter-btn');
-    filterButtons.forEach(btn => btn.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    
-    // Filtrar productos
-    if (category === 'todos') {
-        renderInventory(inventory);
-    } else {
-        const filtered = inventory.filter(p => p.category === category);
-        renderInventory(filtered);
-    }
 }
 
 // ============================================
@@ -1143,20 +507,10 @@ function handleFilter(e) {
 
 window.openModalForEdit = openModalForEdit;
 window.deleteProduct = deleteProduct;
-window.openCategoryModalForEdit = openCategoryModalForEdit;
-window.deleteCategory = deleteCategory;
 
 // ============================================
-// AGREGAR AL PEDIDO DESDE INVENTARIO
+// BÚSQUEDA Y ESTADÍSTICAS
 // ============================================
-
-function quickAddToOrder(productId) {
-    const product = inventory.find(p => p.id === productId);
-    
-    if (!product) {
-        showNotification('Producto no encontrado', 'error');
-        return;
-    }
     
     if (product.stock <= 0) {
         showNotification('Producto sin stock', 'error');
@@ -1217,32 +571,6 @@ window.quickAddToOrder = quickAddToOrder;
 // ============================================
 // INICIALIZACIÓN
 // ============================================
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Inicializando Sistema de Inventario MC...');
-    
-    // Cargar datos desde localStorage
-    loadInventoryFromStorage();
-    loadCategoriesFromStorage();
-    
-    // Exponer inventario globalmente
-    window.inventory = inventory;
-    window.categories = categories;
-    
-    console.log(`📦 Inventario cargado: ${inventory.length} productos`);
-    console.log(`🏷️ Categorías cargadas: ${categories.length} categorías`);
-    
-    // Si estamos en la página de inventario, renderizar
-    if (document.getElementById('productsTableBody')) {
-        renderProducts();
-        renderCategories();
-    }
-    
-    console.log('✅ Sistema de Inventario MC cargado correctamente! 📦');
-});
-
-// ============================================
 // UTILIDADES DE DEBUGGING
 // ============================================
 
@@ -1250,10 +578,6 @@ document.addEventListener('DOMContentLoaded', function() {
 window.showIdStatus = function() {
     console.log('=== ESTADO DE IDS ===');
     console.log('Próximo ID de Producto:', nextProductId);
-    console.log('Próximo ID de Categoría:', nextCategoryId);
     console.log('Total de Productos:', inventory.length);
-    console.log('Total de Categorías:', categories.length);
     console.log('IDs de Productos:', inventory.map(p => p.id).sort((a, b) => a - b));
-    console.log('IDs de Categorías:', categories.map(c => c.id).sort((a, b) => a - b));
 };
-
