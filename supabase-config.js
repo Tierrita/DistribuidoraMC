@@ -4,7 +4,7 @@
 
 // Credenciales de Supabase - Proyecto Distribuidora MC
 const SUPABASE_URL = 'https://vifkbxcwwiqtddnvtnjk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_PMole8xbFvk18U0WwGAljg_kHHl4RLm';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpZmtieGN3d2lxdGRkbnZ0bmprIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwNDYxMTksImV4cCI6MjA4MjYyMjExOX0.XIzMIdgnskwUmJ4PaXXWNqn3QWRfSBepJDzlfInH3YE';
 
 // Validar que las credenciales estén configuradas
 if (SUPABASE_URL.includes('TU_SUPABASE') || SUPABASE_ANON_KEY.includes('TU_SUPABASE')) {
