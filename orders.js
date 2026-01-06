@@ -163,6 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartBadge();
     initializeOrdersEventListeners();
     initializeTabsEventListeners();
+    initializeCustomerForm();  // Inicializar formulario de cliente
     loadDynamicOrderFilters();
     
     // Cargar inventario si no está disponible
@@ -364,8 +365,7 @@ function handleCustomerDataSubmit(e) {
         name: selectedClient.name,
         phone: selectedClient.phone,
         address: selectedClient.address || '',
-        email: selectedClient.email || '',
-        notes: document.getElementById('newOrderNotes').value.trim()
+        email: selectedClient.email || ''
     };
     
     // Mostrar sección de armado de pedido
@@ -378,39 +378,6 @@ function handleCustomerDataSubmit(e) {
     
     console.log('✅ Cliente cargado para el pedido:', currentCustomerData);
     showNotification(`Cliente ${currentCustomerData.name} cargado. Agrega productos al pedido.`, 'success');
-}
-    
-    if (address.length < 5) {
-        showNotification('La dirección debe tener al menos 5 caracteres', 'error');
-        return;
-    }
-    
-    if (email.length > 0) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            showNotification('El email no es válido', 'error');
-            return;
-        }
-    }
-    
-    // Guardar datos del cliente
-    currentCustomerData = {
-        name: name,
-        phone: phone,
-        address: address,
-        email: email,
-        notes: notes
-    };
-    
-    // Mostrar sección de armado de pedido
-    document.getElementById('customerDataSection').style.display = 'none';
-    document.getElementById('orderBuildSection').style.display = 'block';
-    
-    // Mostrar datos del cliente en la barra
-    document.getElementById('displayCustomerName').textContent = name;
-    document.getElementById('displayCustomerAddress').textContent = address;
-    
-    showNotification(`Pedido para ${name} - Ahora agrega productos`, 'success');
 }
 
 function editCustomerData() {
