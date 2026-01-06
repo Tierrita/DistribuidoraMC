@@ -187,14 +187,24 @@ function handleSearch() {
             (p.brand && p.brand.toLowerCase().includes(searchTerm))
         );
     }
-    if (selectedBrand) {
-        filtered = filtered.filter(p => p.brand === selectedBrand);
+    
+    // Mostrar/ocultar botón de limpiar
+    if (btnClearFilters) {
+        btnClearFilters.style.display = (searchTerm || selectedBrand) ? 'flex' : 'none';
     }
+    
     renderInventory(filtered);
 }
 
 function handleFilter() {
     handleSearch();
+}
+
+function clearFilters() {
+    if (searchInput) searchInput.value = '';
+    if (filterBrand) filterBrand.value = '';
+    if (btnClearFilters) btnClearFilters.style.display = 'none';
+    renderInventory(inventory);
 }
 
 function updateBrandFilter() {
