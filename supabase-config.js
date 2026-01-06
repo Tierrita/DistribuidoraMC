@@ -271,6 +271,7 @@ async function deleteCliente(id) {
 
 async function getPedidos(options = {}) {
     try {
+        // Primero intentar con la relación completa
         let query = supabaseClient
             .from('pedidos')
             .select(`
@@ -280,7 +281,6 @@ async function getPedidos(options = {}) {
                     producto_id,
                     product_name,
                     product_brand,
-                    product_weight,
                     quantity,
                     unit_price,
                     total_price
@@ -301,10 +301,26 @@ async function getPedidos(options = {}) {
         
         const { data, error } = await query;
         
-        if (error) throw error;
+        if (error) {
+            // Si falla, intentar sin la relación (tabla no existe)
+            if (error.message && (error.message.includes('pedido_items') || error.code === '42P01')) {
+                console.warn('⚠️ La tabla pedido_items no existe. Retornando pedidos sin items.');
+                console.warn('💡 Ejecuta sql/setup_ventas.sql para crear las tablas necesarias');
+                
+                const { data: pedidosOnly, error: simpleError } = await supabaseClient
+                    .from('pedidos')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (simpleError) throw simpleError;
+                return (pedidosOnly || []).map(p => ({ ...p, pedido_items: [] }));
+            }
+            throw error;
+        }
+        
         return data || [];
     } catch (error) {
-        console.error('Error al cargar pedidos:', error);
+        console.error('❌ Error al cargar pedidos:', error);
         throw error;
     }
 }
