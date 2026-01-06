@@ -535,13 +535,42 @@ function loadCartFromStorage() {
 }
 
 function saveOrdersToStorage() {
+    // Mantener como fallback
     localStorage.setItem('distributoraMC_orders', JSON.stringify(orders));
 }
 
-function loadOrdersFromStorage() {
+async function loadOrdersFromStorage() {
+    try {
+        // Intentar cargar desde Supabase primero
+        if (window.supabaseDB && typeof window.supabaseDB.getPedidos === 'function') {
+            const pedidos = await window.supabaseDB.getPedidos();
+            orders = pedidos.map(p => ({
+                id: p.id,
+                orderNumber: p.order_number,
+                date: p.created_at,
+                customer: {
+                    name: p.customer_name,
+                    phone: p.customer_phone || '',
+                    email: p.customer_email || '',
+                    address: p.customer_address || ''
+                },
+                items: p.pedido_items || [],
+                total: parseFloat(p.total) || 0,
+                notes: p.notes || '',
+                status: p.status || 'pendiente'
+            }));
+            console.log('✅ Pedidos cargados desde Supabase:', orders.length);
+            return;
+        }
+    } catch (error) {
+        console.error('Error al cargar pedidos desde Supabase:', error);
+    }
+    
+    // Fallback a localStorage
     const stored = localStorage.getItem('distributoraMC_orders');
     if (stored) {
         orders = JSON.parse(stored);
+        console.log('📦 Pedidos cargados desde localStorage:', orders.length);
     }
 }
 
@@ -1032,7 +1061,7 @@ function renderCheckout() {
 // PROCESAR PEDIDO
 // ============================================
 
-function handleCheckoutSubmit(e) {
+async function handleCheckoutSubmit(e) {
     e.preventDefault();
     
     // ===== VALIDACIONES =====
@@ -1099,38 +1128,105 @@ function handleCheckoutSubmit(e) {
             showNotification(`El producto "${item.name}" ya no está disponible`, 'error');
             return;
         }
-        if (product.stock < item.quantity) {
+        if (product.stock && product.stock < item.quantity) {
             showNotification(`Stock insuficiente para "${item.name}". Disponible: ${product.stock}`, 'error');
-            return;
-        }
-    }
             return;
         }
     }
     
     // ===== FIN VALIDACIONES =====
     
+    // Crear datos del pedido
     const orderData = {
-        id: Date.now(),
-        orderNumber: generateOrderNumber(),
-        date: new Date().toISOString(),
-        customer: {
-            name: name,
-            phone: phone,
-            email: email,
-            address: address
-        },
-        items: [...cart],
+        cliente_id: selectedClient ? selectedClient.id : null,
+        customer_name: name,
+        customer_phone: phone,
+        customer_email: email || null,
+        customer_address: address,
+        items: cart.map(item => ({
+            producto_id: item.productId || item.id,
+            product_name: item.name,
+            product_brand: item.brand || null,
+            product_weight: item.weight || null,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total_price: item.quantity * item.price
+        })),
+        subtotal: getCartTotal(),
+        discount: 0,
         total: getCartTotal(),
         notes: document.getElementById('orderNotes').value.trim(),
-        status: 'pending'
+        status: 'pendiente',
+        payment_method: null,
+        paid: false
     };
     
-    orders.push(orderData);
-    saveOrdersToStorage();
+    // Guardar en Supabase
+    let finalOrderNumber;
+    try {
+        if (window.supabaseDB && typeof window.supabaseDB.addPedido === 'function') {
+            const savedOrder = await window.supabaseDB.addPedido(orderData);
+            console.log('✅ Pedido guardado en Supabase:', savedOrder);
+            
+            finalOrderNumber = savedOrder.order_number;
+            
+            // Actualizar lista local
+            orders.push({
+                id: savedOrder.id,
+                orderNumber: savedOrder.order_number,
+                date: savedOrder.created_at,
+                customer: {
+                    name: savedOrder.customer_name,
+                    phone: savedOrder.customer_phone || '',
+                    email: savedOrder.customer_email || '',
+                    address: savedOrder.customer_address || ''
+                },
+                items: savedOrder.pedido_items || [],
+                total: parseFloat(savedOrder.total) || 0,
+                notes: savedOrder.notes || '',
+                status: savedOrder.status
+            });
+        } else {
+            // Fallback a localStorage
+            finalOrderNumber = generateOrderNumber();
+            const localOrder = {
+                id: Date.now(),
+                orderNumber: finalOrderNumber,
+                date: new Date().toISOString(),
+                customer: { name, phone, email, address },
+                items: [...cart],
+                total: getCartTotal(),
+                notes: document.getElementById('orderNotes').value.trim(),
+                status: 'pending'
+            };
+            orders.push(localOrder);
+            saveOrdersToStorage();
+        }
+    } catch (error) {
+        console.error('Error al guardar pedido:', error);
+        showNotification('Error al guardar el pedido', 'error');
+        return;
+    }
     
     // ===== DESCONTAR STOCK DEL INVENTARIO =====
     updateInventoryStock(cart);
+    
+    // Limpiar carrito
+    cart = [];
+    saveCartToStorage();
+    updateCartBadge();
+    
+    // Cerrar checkout y mostrar confirmación
+    closeCheckoutModal();
+    checkoutForm.reset();
+    openConfirmationModal(finalOrderNumber);
+    
+    console.log('Pedido confirmado');
+    showNotification('Pedido creado exitosamente', 'success');
+    
+    // Actualizar historial
+    renderOrdersHistory();
+}
     
     // Limpiar carrito
     cart = [];
