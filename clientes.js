@@ -1,305 +1,325 @@
-// SISTEMA DE GESTIÓN DE CLIENTES
+// ============================================
+// SISTEMA DE CLIENTES - Distribuidora MC
+// ============================================
+
 let clients = [];
 let editingClientId = null;
-let useSupabase = false;
 
-const clientsTableBody = document.getElementById('clientsTableBody');
-const clientModal = document.getElementById('clientModal');
-const clientForm = document.getElementById('clientForm');
-const btnAddClient = document.getElementById('btnAddClient');
-const modalClose = document.getElementById('modalClose');
-const btnCancel = document.getElementById('btnCancel');
-const modalTitle = document.getElementById('modalTitle');
-const emptyState = document.getElementById('emptyState');
-const searchInput = document.getElementById('searchInput');
-const btnClearFilters = document.getElementById('btnClearFilters');
+// Elementos del DOM
+let clientsTableBody;
+let emptyClientsState;
+let clientSearchInput;
+let totalClientsEl;
+let activeClientsEl;
+let clientModal;
+let clientForm;
+let modalTitle;
+let btnCancelClient;
+let clientModalClose;
 
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Iniciando módulo de clientes...');
-    if (typeof window.supabaseDB !== 'undefined') {
-        try {
-            const connected = await window.supabaseDB.verificarConexion();
-            if (connected) {
-                useSupabase = true;
-                console.log('Conectado a Supabase');
-                await loadFromSupabase();
-            }
-        } catch (error) {
-            console.log('Error con Supabase:', error);
-        }
-    }
-    initializeEventListeners();
-    renderClients();
-});
+// Inicializar elementos del DOM
+function initializeDOMElements() {
+    clientsTableBody = document.getElementById('clientsTableBody');
+    emptyClientsState = document.getElementById('emptyClientsState');
+    clientSearchInput = document.getElementById('clientSearchInput');
+    totalClientsEl = document.getElementById('totalClients');
+    activeClientsEl = document.getElementById('activeClients');
+    clientModal = document.getElementById('clientModal');
+    clientForm = document.getElementById('clientForm');
+    modalTitle = document.getElementById('modalTitle');
+    btnCancelClient = document.getElementById('btnCancelClient');
+    clientModalClose = document.getElementById('clientModalClose');
+}
 
-async function loadFromSupabase() {
+// ============================================
+// FUNCIONES DE CARGA DE DATOS
+// ============================================
+
+async function loadClients() {
     try {
-        const clientsData = await window.supabaseDB.getClientes();
-        clients = clientsData.map(c => ({
-            id: c.id,
-            name: c.name,
-            email: c.email || '',
-            phone: c.phone,
-            address: c.address || '',
-            cuit: c.cuit || '',
-            status: c.status || 'activo',
-            notes: c.notes || '',
-            createdAt: c.created_at
-        }));
-        console.log('Cargados ' + clients.length + ' clientes');
+        // Intentar cargar desde Supabase
+        if (window.supabaseDB && typeof window.supabaseDB.getClientes === 'function') {
+            clients = await window.supabaseDB.getClientes();
+            console.log('✅ Clientes cargados desde Supabase:', clients.length);
+        } else {
+            // Fallback a localStorage
+            const stored = localStorage.getItem('distributoraMC_clients');
+            clients = stored ? JSON.parse(stored) : [];
+            console.log('📦 Clientes cargados desde localStorage:', clients.length);
+        }
+        
         renderClients();
+        updateStats();
     } catch (error) {
         console.error('Error al cargar clientes:', error);
-        alert('Error al cargar los clientes de la base de datos');
+        showNotification('Error al cargar clientes', 'error');
+        
+        // Fallback a localStorage en caso de error
+        const stored = localStorage.getItem('distributoraMC_clients');
+        clients = stored ? JSON.parse(stored) : [];
+        renderClients();
+        updateStats();
     }
 }
 
-function initializeEventListeners() {
-    btnAddClient.addEventListener('click', openModalForAdd);
-    modalClose.addEventListener('click', closeModal);
-    btnCancel.addEventListener('click', closeModal);
-    clientModal.addEventListener('click', (e) => {
-        if (e.target === clientModal) closeModal();
-    });
-    clientForm.addEventListener('submit', handleSubmit);
-    if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+// ============================================
+// FUNCIONES DE RENDERIZADO
+// ============================================
+
+function renderClients(filter = '') {
+    if (!clientsTableBody) return;
+    
+    const filteredClients = filter
+        ? clients.filter(client => {
+            const searchStr = filter.toLowerCase();
+            return (
+                client.name?.toLowerCase().includes(searchStr) ||
+                client.phone?.toLowerCase().includes(searchStr) ||
+                client.address?.toLowerCase().includes(searchStr)
+            );
+        })
+        : clients;
+    
+    if (filteredClients.length === 0) {
+        clientsTableBody.innerHTML = '';
+        emptyClientsState.style.display = 'flex';
+        return;
     }
-    if (btnClearFilters) {
-        btnClearFilters.addEventListener('click', clearFilters);
-    }
+    
+    emptyClientsState.style.display = 'none';
+    
+    clientsTableBody.innerHTML = filteredClients
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .map(client => `
+            <tr data-client-id="${client.id}">
+                <td><strong>${escapeHtml(client.name)}</strong></td>
+                <td>${escapeHtml(client.phone || '-')}</td>
+                <td>${escapeHtml(client.address || '-')}</td>
+                <td>
+                    <div class="action-buttons">
+                        <button class="btn-icon btn-edit" onclick="editClient(${client.id})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon btn-delete" onclick="confirmDeleteClient(${client.id})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
 }
 
-function openModalForAdd() {
+function updateStats() {
+    if (totalClientsEl) totalClientsEl.textContent = clients.length;
+    if (activeClientsEl) activeClientsEl.textContent = clients.length;
+}
+
+// ============================================
+// FUNCIONES DE MODAL
+// ============================================
+
+function openClientModal() {
     editingClientId = null;
     modalTitle.textContent = 'Agregar Cliente';
     clientForm.reset();
-    document.getElementById('clientStatus').value = 'activo';
-    clientModal.classList.add('active');
-    document.getElementById('clientName').focus();
+    clientModal.style.display = 'flex';
+    
+    // Focus en el primer campo
+    setTimeout(() => {
+        document.getElementById('clientName').focus();
+    }, 100);
 }
 
-function openModalForEdit(clientId) {
-    editingClientId = clientId;
-    modalTitle.textContent = 'Editar Cliente';
-    const client = clients.find(c => c.id === clientId);
-    if (client) {
-        document.getElementById('clientName').value = client.name;
-        document.getElementById('clientEmail').value = client.email || '';
-        document.getElementById('clientPhone').value = client.phone;
-        document.getElementById('clientAddress').value = client.address || '';
-        document.getElementById('clientCuit').value = client.cuit || '';
-        document.getElementById('clientStatus').value = client.status || 'activo';
-        document.getElementById('clientNotes').value = client.notes || '';
-    }
-    clientModal.classList.add('active');
-}
-
-function closeModal() {
-    clientModal.classList.remove('active');
+function closeClientModal() {
+    clientModal.style.display = 'none';
     clientForm.reset();
     editingClientId = null;
 }
 
-async function handleSubmit(e) {
+// ============================================
+// FUNCIONES CRUD
+// ============================================
+
+async function saveClient(e) {
     e.preventDefault();
     
     const clientData = {
         name: document.getElementById('clientName').value.trim(),
-        email: document.getElementById('clientEmail').value.trim(),
         phone: document.getElementById('clientPhone').value.trim(),
-        address: document.getElementById('clientAddress').value.trim(),
-        cuit: document.getElementById('clientCuit').value.trim(),
-        status: document.getElementById('clientStatus').value,
-        notes: document.getElementById('clientNotes').value.trim()
+        address: document.getElementById('clientAddress').value.trim()
     };
-
+    
+    // Validación
+    if (!clientData.name || !clientData.phone || !clientData.address) {
+        showNotification('Todos los campos son requeridos', 'error');
+        return;
+    }
+    
     try {
         if (editingClientId) {
-            // Actualizar cliente
-            if (useSupabase) {
-                await window.supabaseDB.updateCliente(editingClientId, clientData);
-                await loadFromSupabase();
+            // Actualizar cliente existente
+            if (window.supabaseDB && typeof window.supabaseDB.updateCliente === 'function') {
+                const updated = await window.supabaseDB.updateCliente(editingClientId, clientData);
+                const index = clients.findIndex(c => c.id === editingClientId);
+                if (index !== -1) {
+                    clients[index] = updated;
+                }
+                console.log('✅ Cliente actualizado en Supabase');
             } else {
+                // localStorage
                 const index = clients.findIndex(c => c.id === editingClientId);
                 if (index !== -1) {
                     clients[index] = { ...clients[index], ...clientData };
+                    localStorage.setItem('distributoraMC_clients', JSON.stringify(clients));
                 }
-                renderClients();
             }
             showNotification('Cliente actualizado exitosamente', 'success');
         } else {
-            // Agregar nuevo cliente
-            if (useSupabase) {
-                await window.supabaseDB.addCliente(clientData);
-                await loadFromSupabase();
+            // Crear nuevo cliente
+            if (window.supabaseDB && typeof window.supabaseDB.addCliente === 'function') {
+                const newClient = await window.supabaseDB.addCliente(clientData);
+                clients.push(newClient);
+                console.log('✅ Cliente agregado a Supabase');
             } else {
+                // localStorage
                 const newClient = {
                     id: Date.now(),
                     ...clientData,
-                    createdAt: new Date().toISOString()
+                    created_at: new Date().toISOString()
                 };
                 clients.push(newClient);
-                renderClients();
+                localStorage.setItem('distributoraMC_clients', JSON.stringify(clients));
             }
             showNotification('Cliente agregado exitosamente', 'success');
         }
-        closeModal();
+        
+        closeClientModal();
+        renderClients();
+        updateStats();
+        
     } catch (error) {
         console.error('Error al guardar cliente:', error);
-        showNotification('Error al guardar el cliente', 'error');
+        showNotification('Error al guardar cliente', 'error');
     }
 }
 
-async function deleteClient(clientId) {
-    const client = clients.find(c => c.id === clientId);
+function editClient(id) {
+    const client = clients.find(c => c.id === id);
     if (!client) return;
+    
+    editingClientId = id;
+    modalTitle.textContent = 'Editar Cliente';
+    
+    document.getElementById('clientName').value = client.name || '';
+    document.getElementById('clientPhone').value = client.phone || '';
+    document.getElementById('clientAddress').value = client.address || '';
+    
+    clientModal.style.display = 'flex';
+}
 
-    if (!confirm(`¿Estás seguro de eliminar al cliente "${client.name}"?`)) {
-        return;
+function confirmDeleteClient(id) {
+    const client = clients.find(c => c.id === id);
+    if (!client) return;
+    
+    if (confirm(`¿Estás seguro de eliminar el cliente "${client.name}"?`)) {
+        deleteClient(id);
     }
+}
 
+async function deleteClient(id) {
     try {
-        if (useSupabase) {
-            await window.supabaseDB.deleteCliente(clientId);
-            await loadFromSupabase();
+        if (window.supabaseDB && typeof window.supabaseDB.deleteCliente === 'function') {
+            await window.supabaseDB.deleteCliente(id);
+            console.log('✅ Cliente eliminado de Supabase');
         } else {
-            clients = clients.filter(c => c.id !== clientId);
-            renderClients();
+            // localStorage
+            localStorage.setItem('distributoraMC_clients', JSON.stringify(clients.filter(c => c.id !== id)));
         }
+        
+        clients = clients.filter(c => c.id !== id);
+        renderClients();
+        updateStats();
         showNotification('Cliente eliminado exitosamente', 'success');
+        
     } catch (error) {
         console.error('Error al eliminar cliente:', error);
-        showNotification('Error al eliminar el cliente', 'error');
+        showNotification('Error al eliminar cliente', 'error');
     }
 }
 
-function renderClients() {
-    if (clients.length === 0) {
-        clientsTableBody.innerHTML = '';
-        emptyState.style.display = 'flex';
-        return;
-    }
+// ============================================
+// FUNCIONES DE BÚSQUEDA
+// ============================================
 
-    emptyState.style.display = 'none';
-    clientsTableBody.innerHTML = clients.map(client => `
-        <tr>
-            <td>${client.id}</td>
-            <td><strong>${escapeHtml(client.name)}</strong></td>
-            <td>${client.email ? escapeHtml(client.email) : '-'}</td>
-            <td>${escapeHtml(client.phone)}</td>
-            <td>${client.address ? escapeHtml(client.address) : '-'}</td>
-            <td>${client.cuit ? escapeHtml(client.cuit) : '-'}</td>
-            <td>
-                <span class="status-badge ${client.status}">
-                    ${client.status === 'activo' ? '✓ Activo' : '✕ Inactivo'}
-                </span>
-            </td>
-            <td class="actions">
-                <button class="btn-icon btn-edit" onclick="openModalForEdit(${client.id})" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-delete" onclick="deleteClient(${client.id})" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
+function handleSearch(e) {
+    const searchTerm = e.target.value.trim();
+    renderClients(searchTerm);
 }
 
-function handleSearch() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    
-    if (searchTerm === '') {
-        btnClearFilters.style.display = 'none';
-        renderClients();
-        return;
-    }
-
-    btnClearFilters.style.display = 'block';
-    
-    const filteredClients = clients.filter(client => 
-        client.name.toLowerCase().includes(searchTerm) ||
-        (client.email && client.email.toLowerCase().includes(searchTerm)) ||
-        (client.phone && client.phone.toLowerCase().includes(searchTerm)) ||
-        (client.cuit && client.cuit.toLowerCase().includes(searchTerm))
-    );
-
-    renderFilteredClients(filteredClients);
-}
-
-function renderFilteredClients(filteredClients) {
-    if (filteredClients.length === 0) {
-        clientsTableBody.innerHTML = `
-            <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem;">
-                    <i class="fas fa-search" style="font-size: 2rem; color: #ccc;"></i>
-                    <p style="margin-top: 1rem; color: #666;">No se encontraron clientes</p>
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    clientsTableBody.innerHTML = filteredClients.map(client => `
-        <tr>
-            <td>${client.id}</td>
-            <td><strong>${escapeHtml(client.name)}</strong></td>
-            <td>${client.email ? escapeHtml(client.email) : '-'}</td>
-            <td>${escapeHtml(client.phone)}</td>
-            <td>${client.address ? escapeHtml(client.address) : '-'}</td>
-            <td>${client.cuit ? escapeHtml(client.cuit) : '-'}</td>
-            <td>
-                <span class="status-badge ${client.status}">
-                    ${client.status === 'activo' ? '✓ Activo' : '✕ Inactivo'}
-                </span>
-            </td>
-            <td class="actions">
-                <button class="btn-icon btn-edit" onclick="openModalForEdit(${client.id})" title="Editar">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon btn-delete" onclick="deleteClient(${client.id})" title="Eliminar">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-}
-
-function clearFilters() {
-    searchInput.value = '';
-    btnClearFilters.style.display = 'none';
-    renderClients();
-}
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
 
 function escapeHtml(text) {
-    const map = {
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, m => map[m]);
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function showNotification(message, type = 'info') {
-    // Crear elemento de notificación
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
-        <span>${message}</span>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Mostrar notificación
-    setTimeout(() => notification.classList.add('show'), 100);
-    
-    // Ocultar y eliminar después de 3 segundos
-    setTimeout(() => {
-        notification.classList.remove('show');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    // Usar el sistema de notificaciones global si existe
+    if (typeof window.showToast === 'function') {
+        window.showToast(message, type);
+    } else {
+        alert(message);
+    }
 }
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+
+document.addEventListener('DOMContentLoaded', () => {
+    initializeDOMElements();
+    
+    // Event Listeners
+    if (clientSearchInput) {
+        clientSearchInput.addEventListener('input', handleSearch);
+    }
+    
+    if (clientForm) {
+        clientForm.addEventListener('submit', saveClient);
+    }
+    
+    if (btnCancelClient) {
+        btnCancelClient.addEventListener('click', closeClientModal);
+    }
+    
+    if (clientModalClose) {
+        clientModalClose.addEventListener('click', closeClientModal);
+    }
+    
+    // Cerrar modal al hacer clic fuera
+    if (clientModal) {
+        clientModal.addEventListener('click', (e) => {
+            if (e.target === clientModal) {
+                closeClientModal();
+            }
+        });
+    }
+    
+    // Botón agregar cliente
+    const btnAddClient = document.getElementById('btnAddClient');
+    if (btnAddClient) {
+        btnAddClient.addEventListener('click', openClientModal);
+    }
+    
+    // Cargar datos
+    loadClients();
+});
+
+// Exponer funciones globalmente
+window.editClient = editClient;
+window.confirmDeleteClient = confirmDeleteClient;
+window.openClientModal = openClientModal;
