@@ -218,12 +218,16 @@ function initializeClientSelector() {
     
     if (!clientSearchInput) return;
     
-    // Mostrar todos los clientes al hacer focus
+    // Mostrar todos los clientes al hacer focus o click
     clientSearchInput.addEventListener('focus', () => {
         showAllClients();
     });
     
-    // Búsqueda en tiempo real
+    clientSearchInput.addEventListener('click', () => {
+        showAllClients();
+    });
+    
+    // Búsqueda en tiempo real (filtra mientras escribes)
     clientSearchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
         
@@ -233,15 +237,19 @@ function initializeClientSelector() {
             return;
         }
         
-        // Filtrar clientes
-        const filtered = allClients.filter(client => 
-            client.name.toLowerCase().includes(query) ||
-            client.phone.includes(query) ||
-            (client.address && client.address.toLowerCase().includes(query))
-        );
+        // Filtrar clientes (busca en nombre, teléfono y dirección)
+        const filtered = allClients.filter(client => {
+            const name = client.name.toLowerCase();
+            const phone = client.phone || '';
+            const address = (client.address || '').toLowerCase();
+            
+            return name.includes(query) || 
+                   phone.includes(query) || 
+                   address.includes(query);
+        });
         
-        // Mostrar resultados filtrados
-        displayClientResults(filtered);
+        // Mostrar resultados filtrados en tiempo real
+        displayClientResults(filtered, query);
     });
     
     // Cerrar resultados al hacer click fuera
@@ -273,28 +281,51 @@ function showAllClients() {
     displayClientResults(allClients);
 }
 
-// Mostrar lista de clientes
-function displayClientResults(clients) {
+// Mostrar lista de clientes (con resaltado opcional de búsqueda)
+function displayClientResults(clients, query = '') {
     const clientSearchResults = document.getElementById('clientSearchResults');
     
     if (clients.length > 0) {
-        clientSearchResults.innerHTML = clients.slice(0, 8).map(client => `
-            <div class="client-result-item" onclick="selectClient(${client.id})">
-                <div class="client-result-name">${escapeHtml(client.name)}</div>
-                <div class="client-result-info">
-                    <span><i class="fas fa-phone"></i> ${escapeHtml(client.phone)}</span>
-                    <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(client.address || 'Sin dirección')}</span>
+        const maxResults = 10; // Mostrar máximo 10 resultados
+        const clientsToShow = clients.slice(0, maxResults);
+        
+        clientSearchResults.innerHTML = clientsToShow.map(client => {
+            // Resaltar texto buscado si hay query
+            let displayName = escapeHtml(client.name);
+            if (query) {
+                const regex = new RegExp(`(${query})`, 'gi');
+                displayName = displayName.replace(regex, '<mark>$1</mark>');
+            }
+            
+            return `
+                <div class="client-result-item" onclick="selectClient(${client.id})">
+                    <div class="client-result-name">${displayName}</div>
+                    <div class="client-result-info">
+                        <span><i class="fas fa-phone"></i> ${escapeHtml(client.phone || 'Sin teléfono')}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> ${escapeHtml(client.address || 'Sin dirección')}</span>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        
+        // Mostrar contador si hay más resultados
+        if (clients.length > maxResults) {
+            clientSearchResults.innerHTML += `
+                <div class="client-result-more">
+                    <i class="fas fa-info-circle"></i>
+                    Y ${clients.length - maxResults} cliente(s) más... Sigue escribiendo para filtrar
+                </div>
+            `;
+        }
+        
         clientSearchResults.classList.add('active');
     } else {
         clientSearchResults.innerHTML = `
             <div class="client-result-empty">
                 <i class="fas fa-user-slash"></i>
-                <p>No se encontraron clientes</p>
+                <p>No se encontraron clientes con "${query}"</p>
                 <a href="clientes.html" style="color: var(--primary-color); margin-top: 0.5rem; display: inline-block;">
-                    Agregar nuevo cliente
+                    <i class="fas fa-user-plus"></i> Agregar nuevo cliente
                 </a>
             </div>
         `;
