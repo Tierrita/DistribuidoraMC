@@ -36,22 +36,27 @@ function generateMockData2025() {
     const pedidos = [];
     let pedidoId = 1;
     
-    // Base mensual (con crecimiento del 30% vs 2024)
-    const baseMonthly2024 = 180000; // Base 2024
-    const baseMonthly2025 = baseMonthly2024 * 1.3; // +30% en 2025
+    // Configuración: Enero 2025 = $2.000.000, crecimiento progresivo hasta +30% en diciembre
+    const ingresoEnero2025 = 2000000;
+    const ingresoDiciembre2025 = ingresoEnero2025 * 1.3; // $2.600.000
+    const incrementoMensual = (ingresoDiciembre2025 - ingresoEnero2025) / 11; // Crecimiento lineal
     
     // Generar pedidos para 2025 (12 meses) + enero 2026
     for (let mes = 0; mes < 13; mes++) {
         const fecha = new Date(2025, mes, 1);
         const diasEnMes = new Date(2025, mes + 1, 0).getDate();
         
-        // Variación estacional (+20% dic, +15% jun/jul)
-        let factorEstacional = 1;
-        if (mes === 11) factorEstacional = 1.2; // Diciembre
-        if (mes === 5 || mes === 6) factorEstacional = 1.15; // Jun/Jul
+        // Calcular ingreso mensual con crecimiento progresivo
+        let ingresoMensual;
+        if (mes < 12) {
+            // 2025: crecimiento lineal de $2M a $2.6M
+            ingresoMensual = ingresoEnero2025 + (incrementoMensual * mes);
+        } else {
+            // Enero 2026: mantener nivel de diciembre 2025
+            ingresoMensual = ingresoDiciembre2025;
+        }
         
-        const ingresoMensual = baseMonthly2025 * factorEstacional;
-        const pedidosPorMes = 18 + Math.floor(Math.random() * 8); // 18-25 pedidos/mes
+        const pedidosPorMes = 20 + Math.floor(Math.random() * 10); // 20-29 pedidos/mes
         
         for (let p = 0; p < pedidosPorMes; p++) {
             const dia = Math.floor(Math.random() * diasEnMes) + 1;
