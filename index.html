@@ -33,8 +33,8 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1><i class="fas fa-chart-line"></i> Dashboard</h1>
-            <p>Panel de control y estadísticas</p>
+            <h1><i class="fas fa-chart-line"></i> Dashboard Administrativo</h1>
+            <p>Panel de control y estadísticas del negocio</p>
         </div>
     </section>
 
@@ -44,12 +44,13 @@
             <!-- Stats Cards -->
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-icon products">
-                        <i class="fas fa-box"></i>
+                    <div class="stat-icon sales">
+                        <i class="fas fa-dollar-sign"></i>
                     </div>
                     <div class="stat-info">
-                        <h4>Total Productos</h4>
-                        <p class="stat-number" id="totalProducts">0</p>
+                        <h4>Ventas del Día</h4>
+                        <p class="stat-number" id="todaySales">$0</p>
+                        <span class="stat-change positive" id="salesChange">+0%</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -59,6 +60,17 @@
                     <div class="stat-info">
                         <h4>Pedidos del Mes</h4>
                         <p class="stat-number" id="monthlyOrders">0</p>
+                        <span class="stat-label">pedidos completados</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon stock">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Stock Bajo</h4>
+                        <p class="stat-number" id="lowStock">0</p>
+                        <span class="stat-label">productos críticos</span>
                     </div>
                 </div>
                 <div class="stat-card">
@@ -66,27 +78,81 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="stat-info">
-                        <h4>Clientes</h4>
-                        <p class="stat-number" id="totalClients">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon revenue">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Ventas del Mes</h4>
-                        <p class="stat-number" id="monthlyRevenue">$0</p>
+                        <h4>Clientes Activos</h4>
+                        <p class="stat-number" id="activeClients">0</p>
+                        <span class="stat-label">último mes</span>
                     </div>
                 </div>
             </div>
 
-            <!-- Placeholder para gráficos -->
-            <div class="dashboard-charts">
-                <div class="chart-placeholder">
-                    <i class="fas fa-chart-bar"></i>
-                    <h3>Gráficos en desarrollo</h3>
-                    <p>Próximamente: estadísticas de ventas, productos más vendidos, y análisis de rendimiento</p>
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <!-- Ventas por Día -->
+                <div class="chart-card chart-card-large">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-line"></i> Ventas por Día</h3>
+                        <span class="chart-subtitle">Últimos 30 días</span>
+                    </div>
+                    <canvas id="salesByDayChart"></canvas>
+                </div>
+
+                <!-- Ingresos Mensuales -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-bar"></i> Ingresos Mensuales</h3>
+                        <span class="chart-subtitle">Últimos 6 meses</span>
+                    </div>
+                    <canvas id="monthlyRevenueChart"></canvas>
+                </div>
+
+                <!-- Categorías Más Vendidas -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3><i class="fas fa-chart-pie"></i> Categorías Más Vendidas</h3>
+                        <span class="chart-subtitle">Por cantidad</span>
+                    </div>
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Tables Grid -->
+            <div class="tables-grid">
+                <!-- Top 5 Clientes -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3><i class="fas fa-trophy"></i> Top 5 Clientes</h3>
+                        <span class="table-subtitle">Por volumen de compra</span>
+                    </div>
+                    <table class="stats-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cliente</th>
+                                <th>Total Compras</th>
+                                <th>Pedidos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topClientsTable">
+                            <tr>
+                                <td colspan="4" class="table-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Cargando datos...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Producto Más Vendido -->
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3><i class="fas fa-star"></i> Producto Más Vendido</h3>
+                        <span class="table-subtitle">Histórico</span>
+                    </div>
+                    <div class="top-product" id="topProduct">
+                        <div class="top-product-loading">
+                            <i class="fas fa-spinner fa-spin"></i> Cargando...
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -126,115 +192,6 @@
             
             document.getElementById('totalProducts').textContent = inventory.length;
             document.getElementById('monthlyOrders').textContent = orders.length;
-            document.getElementById('totalClients').textContent = new Set(orders.map(o => o.customer?.name)).size;
-            
-            const monthlyTotal = orders.reduce((sum, o) => sum + (o.total || 0), 0);
-            document.getElementById('monthlyRevenue').textContent = `$${monthlyTotal.toFixed(2)}`;
-        });
-    </script>
-</body>
-</html>    <!-- Características -->
-    <section class="features">
-        <div class="container">
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-truck-fast"></i>
-                    </div>
-                    <h3>Entrega Rápida</h3>
-                    <p>Envíos express en toda la zona</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-shield-halved"></i>
-                    </div>
-                    <h3>Calidad Garantizada</h3>
-                    <p>Productos certificados y frescos</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-headset"></i>
-                    </div>
-                    <h3>Atención Personalizada</h3>
-                    <p>Asesoramiento profesional</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Productos Destacados -->
-    <section id="productos" class="products">
-        <div class="container">
-            <div class="section-header">
-                <h2>Nuestros Productos</h2>
-                <p>Amplia variedad de fiambres y embutidos de primera calidad</p>
-            </div>
-            <div class="product-grid">
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-bacon"></i>
-                    </div>
-                    <h3>Jamones</h3>
-                    <p>Jamón cocido, crudo, serrano y más variedades premium</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-cheese"></i>
-                    </div>
-                    <h3>Quesos</h3>
-                    <p>Selección de quesos nacionales e importados</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-sausage"></i>
-                    </div>
-                    <h3>Embutidos</h3>
-                    <p>Salames, chorizos, mortadelas y más</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-drumstick-bite"></i>
-                    </div>
-                    <h3>Carnes Frías</h3>
-                    <p>Pavita, pollo, lomito y especialidades</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-bread-slice"></i>
-                    </div>
-                    <h3>Productos Gourmet</h3>
-                    <p>Patés, aceitunas, pickles y delicatessen</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="product-card">
-                    <div class="product-icon">
-                        <i class="fas fa-fish"></i>
-                    </div>
-                    <h3>Pescados y Mariscos</h3>
-                    <p>Conservas y productos del mar</p>
-                    <a href="pedidos.html" class="product-link">Hacer Pedido <i class="fas fa-arrow-right"></i></a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="container">
-            <div class="cta-content">
-                <h2><i class="fas fa-shopping-bag"></i> ¿Listo para hacer tu pedido?</h2>
-                <p>Explora nuestro catálogo completo y agrega productos a tu carrito</p>
-                <a href="pedidos.html" class="btn btn-primary btn-large">
-                    <i class="fas fa-cart-shopping"></i> Comenzar Pedido
-                </a>
-            </div>
-        </div>
-    </section>
-
     <!-- Footer Futurista -->
     <footer class="footer-futuristic">
         <div class="footer-content">
@@ -287,7 +244,13 @@
         </div>
     </footer>
 
-    <script src="orders.js"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <!-- Dashboard Script -->
+    <script src="dashboard.js"></script>
 
 </body>
 </html>
