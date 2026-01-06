@@ -2,6 +2,30 @@
 // SISTEMA DE PEDIDOS - Distribuidora MC
 // ============================================
 
+// Utilidades de DOM seguro
+function safeGetElement(id, required = false) {
+    const element = document.getElementById(id);
+    if (!element && required) {
+        console.warn(`⚠️ Elemento requerido no encontrado: #${id}`);
+    }
+    return element;
+}
+
+function safeSetText(id, text) {
+    const element = safeGetElement(id);
+    if (element) element.textContent = text;
+}
+
+function safeSetStyle(id, property, value) {
+    const element = safeGetElement(id);
+    if (element) element.style[property] = value;
+}
+
+function safeSetDisabled(id, disabled) {
+    const element = safeGetElement(id);
+    if (element) element.disabled = disabled;
+}
+
 // Variables globales
 let cart = [];
 let orders = [];
@@ -193,17 +217,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadClientsData() {
     try {
-        // Intentar cargar desde Supabase si está disponible
         if (window.supabaseDB && typeof window.supabaseDB.getClientes === 'function') {
             allClients = await window.supabaseDB.getClientes();
             console.log('✅ Clientes cargados desde Supabase:', allClients.length);
-        } else {
-            throw new Error('Supabase no disponible');
+            return;
         }
     } catch (error) {
-        console.warn('⚠️ Cargando clientes desde localStorage:', error);
+        console.warn('⚠️ Error al cargar desde Supabase:', error.message);
+    }
+    
+    // Fallback a localStorage
+    try {
         const stored = localStorage.getItem('distributoraMC_clients');
         allClients = stored ? JSON.parse(stored) : [];
+        console.log('📦 Clientes cargados desde localStorage:', allClients.length);
+    } catch (error) {
+        console.error('❌ Error al cargar clientes:', error);
+        allClients = [];
     }
 }
 
@@ -366,8 +396,8 @@ function selectClient(clientId) {
         document.getElementById('selectedClientEmailWrapper').style.display = 'none';
     }
     
-    selectedInfo.style.display = 'block';
-    document.getElementById('btnContinueOrder').disabled = false;
+    safeSetStyle('selectedClientInfo', 'display', 'block');
+    safeSetDisabled('btnContinueOrder', false);
     
     console.log('✅ Cliente seleccionado:', selectedClient.name);
 }
@@ -410,12 +440,12 @@ function handleCustomerDataSubmit(e) {
     };
     
     // Mostrar sección de armado de pedido
-    document.getElementById('customerDataSection').style.display = 'none';
-    document.getElementById('orderBuildSection').style.display = 'block';
+    safeSetStyle('customerDataSection', 'display', 'none');
+    safeSetStyle('orderBuildSection', 'display', 'block');
     
     // Actualizar info del cliente en la barra superior
-    document.getElementById('displayCustomerName').textContent = currentCustomerData.name;
-    document.getElementById('displayCustomerAddress').textContent = currentCustomerData.address;
+    safeSetText('displayCustomerName', currentCustomerData.name);
+    safeSetText('displayCustomerAddress', currentCustomerData.address);
     
     console.log('✅ Cliente cargado para el pedido:', currentCustomerData);
     showNotification(`Cliente ${currentCustomerData.name} cargado. Agrega productos al pedido.`, 'success');
@@ -593,29 +623,35 @@ async function loadOrdersFromStorage() {
 
 function initializeOrdersEventListeners() {
     // Botón del carrito
-    cartButton.addEventListener('click', openCartModal);
+    if (cartButton) cartButton.addEventListener('click', openCartModal);
     
     // Cerrar modales
-    cartModalClose.addEventListener('click', closeCartModal);
-    checkoutModalClose.addEventListener('click', closeCheckoutModal);
-    btnCancelCheckout.addEventListener('click', closeCheckoutModal);
+    if (cartModalClose) cartModalClose.addEventListener('click', closeCartModal);
+    if (checkoutModalClose) checkoutModalClose.addEventListener('click', closeCheckoutModal);
+    if (btnCancelCheckout) btnCancelCheckout.addEventListener('click', closeCheckoutModal);
     
     // Click fuera del modal
-    cartModal.addEventListener('click', (e) => {
-        if (e.target === cartModal) closeCartModal();
-    });
+    if (cartModal) {
+        cartModal.addEventListener('click', (e) => {
+            if (e.target === cartModal) closeCartModal();
+        });
+    }
     
-    checkoutModal.addEventListener('click', (e) => {
-        if (e.target === checkoutModal) closeCheckoutModal();
-    });
+    if (checkoutModal) {
+        checkoutModal.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) closeCheckoutModal();
+        });
+    }
     
-    confirmationModal.addEventListener('click', (e) => {
-        if (e.target === confirmationModal) closeConfirmationModal();
-    });
+    if (confirmationModal) {
+        confirmationModal.addEventListener('click', (e) => {
+            if (e.target === confirmationModal) closeConfirmationModal();
+        });
+    }
     
     // Acciones del carrito
-    btnClearCart.addEventListener('click', clearCart);
-    btnCheckout.addEventListener('click', openCheckoutModal);
+    if (btnClearCart) btnClearCart.addEventListener('click', clearCart);
+    if (btnCheckout) btnCheckout.addEventListener('click', openCheckoutModal);
     
     // POS Cart Actions
     if (btnCheckoutPos) {
@@ -623,23 +659,27 @@ function initializeOrdersEventListeners() {
     }
     
     // Formulario de checkout
-    checkoutForm.addEventListener('submit', handleCheckoutSubmit);
+    if (checkoutForm) checkoutForm.addEventListener('submit', handleCheckoutSubmit);
     
     // Confirmación
-    btnNewOrder.addEventListener('click', () => {
-        closeConfirmationModal();
-        // Cambiar al tab de nuevo pedido
-        tabButtons[0].click();
-    });
+    if (btnNewOrder) {
+        btnNewOrder.addEventListener('click', () => {
+            closeConfirmationModal();
+            // Cambiar al tab de nuevo pedido
+            if (tabButtons && tabButtons[0]) tabButtons[0].click();
+        });
+    }
     
-    btnViewOrders.addEventListener('click', () => {
-        closeConfirmationModal();
-        // Cambiar al tab de historial
-        tabButtons[1].click();
-    });
+    if (btnViewOrders) {
+        btnViewOrders.addEventListener('click', () => {
+            closeConfirmationModal();
+            // Cambiar al tab de historial
+            if (tabButtons && tabButtons[1]) tabButtons[1].click();
+        });
+    }
     
     // Búsqueda en pedidos
-    orderSearchInput.addEventListener('input', handleOrderSearch);
+    if (orderSearchInput) orderSearchInput.addEventListener('input', handleOrderSearch);
 }
 
 // ============================================
@@ -899,6 +939,8 @@ function clearCartFromPos() {
 }
 
 function updateCartBadge() {
+    if (!cartBadge) return; // Protección si el elemento no existe
+    
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartBadge.textContent = totalItems;
     

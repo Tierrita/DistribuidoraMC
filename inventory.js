@@ -569,6 +569,8 @@ function handleTabChange(e) {
 // ============================================
 
 function renderCategories() {
+    if (!categoriesGrid || !emptyCategoriesState) return; // Protección si los elementos no existen
+    
     if (categories.length === 0) {
         categoriesGrid.innerHTML = '';
         emptyCategoriesState.style.display = 'flex';
@@ -1023,6 +1025,8 @@ async function deleteProduct(productId) {
 }
 
 function renderInventory(productsToRender = inventory) {
+    if (!inventoryTableBody || !emptyState) return; // Protección si los elementos no existen
+    
     if (productsToRender.length === 0) {
         inventoryTableBody.innerHTML = '';
         emptyState.style.display = 'flex';
