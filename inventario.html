@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventario - Distribuidora MC</title>
+    <title>Inventario Simple - Distribuidora MC</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,96 +21,67 @@
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
                 <li><a href="inventario.html" class="active">Inventario</a></li>
-                <li><a href="pedidos.html">Pedidos</a></li>
-                <li><a href="clientes.html">Clientes</a></li>
-                <li><a href="ventas.html">Ventas</a></li>
             </ul>
-
-            <button class="menu-toggle" id="menuToggle">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
     </nav>
 
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1><i class="fas fa-boxes-stacked"></i> Gestión de Inventario</h1>
-            <p>Control completo de categorías, productos, stock y precios</p>
+            <h1><i class="fas fa-boxes-stacked"></i> Inventario Simple</h1>
+            <p>Gestión de productos</p>
         </div>
     </section>
 
-    <!-- Sección de Inventario -->
+    <!-- Inventario -->
     <section class="inventory">
         <div class="container">
-            <!-- TAB: PRODUCTOS -->
-            <div id="tabProductos" class="tab-content active">
-                <!-- Controles del Inventario -->
-                <div class="inventory-controls">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Buscar por ID, nombre o marca...">
-                    </div>
-                    <button class="btn-add-product" id="btnAddProduct">
-                        <i class="fas fa-plus"></i> Agregar Producto
-                    </button>
+            <div class="inventory-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por ID, nombre o marca...">
                 </div>
-
-            <!-- Estadísticas Rápidas -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-boxes-stacked"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Total Productos</h4>
-                        <p class="stat-number" id="totalProducts">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon value">
-                        <i class="fas fa-dollar-sign"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h4>Valor Total Inventario</h4>
-                        <p class="stat-number" id="totalValue">$0</p>
-                    </div>
-                </div>
+                <select id="filterBrand" class="filter-select">
+                    <option value="">Todas las marcas</option>
+                </select>
+                <button class="filter-btn" id="btnClearFilters" style="display: none;">
+                    <i class="fas fa-times"></i> Limpiar
+                </button>
+                <button class="btn-add-product" id="btnAddProduct">
+                    <i class="fas fa-plus"></i> Agregar Producto
+                </button>
             </div>
 
-            <!-- Tabla de Inventario -->
-            <div class="inventory-table-container">
+            <!-- Tabla de Productos -->
+            <div class="inventory-table-wrapper">
                 <table class="inventory-table">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Nombre del Producto</th>
+                            <th>Producto</th>
                             <th>Marca</th>
-                            <th>Categoría</th>
-                            <th>Peso (kg)</th>
-                            <th>Precio por kg</th>
-                            <th>Precio de Costo</th>
-                            <th>Precio de Venta</th>
+                            <th>Peso</th>
+                            <th>Precio Costo</th>
+                            <th>Precio x KG</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody">
-                        <!-- Los productos se cargarán dinámicamente -->
+                        <!-- Productos aquí -->
                     </tbody>
                 </table>
             </div>
 
-            <!-- Mensaje cuando no hay productos -->
+            <!-- Mensaje vacío -->
             <div id="emptyState" class="empty-state" style="display: none;">
                 <i class="fas fa-box-open"></i>
-                <h3>No hay productos en el inventario</h3>
-                <p>Agrega tu primer producto haciendo clic en el botón "Agregar Producto"</p>
-            </div>
+                <h3>No hay productos</h3>
+                <p>Agrega tu primer producto</p>
             </div>
         </div>
     </section>
 
-    <!-- Modal para Agregar/Editar Producto -->
+    <!-- Modal -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -120,44 +91,26 @@
                 </button>
             </div>
             <form id="productForm">
-                <!-- Campo oculto para ID -->
-                <input type="hidden" id="productId">
-                
                 <div class="form-grid">
                     <div class="form-group full-width">
-                        <label for="productName">Nombre del Producto</label>
-                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium" maxlength="100" autofocus>
+                        <label for="productName">Nombre del Producto *</label>
+                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido" maxlength="100">
                     </div>
                     <div class="form-group">
                         <label for="productBrand">Marca</label>
-                        <input type="text" id="productBrand" required placeholder="Ej: La Serenísima" maxlength="50">
+                        <input type="text" id="productBrand" placeholder="Ej: La Serenísima" maxlength="50">
                     </div>
                     <div class="form-group">
-                        <label for="productCategory">Categoría</label>
-                        <select id="productCategory" required>
-                            <option value="">Seleccionar categoría</option>
-                            <option value="quesos">Quesos</option>
-                            <option value="fiambres">Fiambres</option>
-                            <option value="embutidos">Embutidos</option>
-                            <option value="conservas">Conservas</option>
-                            <option value="aceitunas">Aceitunas</option>
-                        </select>
+                        <label for="productWeight">Peso (kg) *</label>
+                        <input type="number" id="productWeight" step="0.001" min="0.001" required placeholder="0.000">
                     </div>
                     <div class="form-group">
-                        <label for="productWeight">Peso (kg)</label>
-                        <input type="number" id="productWeight" step="0.001" min="0.001" max="999" required placeholder="0.000">
+                        <label for="productCostPrice">Precio Costo ($)</label>
+                        <input type="number" id="productCostPrice" step="0.01" min="0" placeholder="0.00">
                     </div>
                     <div class="form-group">
-                        <label for="productPricePerKg">Precio por kg ($)</label>
-                        <input type="number" id="productPricePerKg" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label for="productCostPrice">Precio de Costo ($)</label>
-                        <input type="number" id="productCostPrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
-                    </div>
-                    <div class="form-group">
-                        <label for="productSalePrice">Precio de Venta ($)</label>
-                        <input type="number" id="productSalePrice" step="0.01" min="0.01" max="9999999" required placeholder="0.00">
+                        <label for="productPricePerKg">Precio por KG ($) *</label>
+                        <input type="number" id="productPricePerKg" step="0.01" min="0.01" required placeholder="0.00">
                     </div>
                 </div>
                 <div class="form-actions">
@@ -170,46 +123,9 @@
         </div>
     </div>
 
-    <!-- Botón WhatsApp Flotante -->
-    <a href="https://wa.me/5491145678900" class="whatsapp-float" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
-                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
-                </div>
-                <div class="footer-section">
-                    <h4>Enlaces Rápidos</h4>
-                    <ul>
-                        <li><a href="index.html">Inicio</a></li>
-                        <li><a href="pedidos.html">Pedidos</a></li>
-                        <li><a href="inventario.html">Inventario</a></li>
-                        <li><a href="contacto.html">Contacto</a></li>
-                    </ul>
-                </div>
-                <div class="footer-section">
-                    <h4>Contacto</h4>
-                    <p><i class="fas fa-phone"></i> (011) 4567-8900</p>
-                    <p><i class="fas fa-envelope"></i> info@distribuidoramc.com</p>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Supabase JS Client -->
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase-config.js?v=20260105"></script>
-    
-    <script src="script.js?v=20260105"></script>
     <script src="inventory.js?v=20260105"></script>
-    <script src="orders.js?v=20260105"></script>
 </body>
 </html>
