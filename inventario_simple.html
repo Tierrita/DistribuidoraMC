@@ -37,6 +37,13 @@
     <section class="inventory">
         <div class="container">
             <div class="inventory-controls">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por ID, nombre o marca...">
+                </div>
+                <select id="filterBrand" class="filter-select">
+                    <option value="">Todas las marcas</option>
+                </select>
                 <button class="btn-add-product" id="btnAddProduct">
                     <i class="fas fa-plus"></i> Agregar Producto
                 </button>

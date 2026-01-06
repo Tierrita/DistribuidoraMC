@@ -16,6 +16,8 @@ const modalClose = document.getElementById('modalClose');
 const btnCancel = document.getElementById('btnCancel');
 const modalTitle = document.getElementById('modalTitle');
 const emptyState = document.getElementById('emptyState');
+const searchInput = document.getElementById('searchInput');
+const filterBrand = document.getElementById('filterBrand');
 
 // ============================================
 // INICIALIZACIÓN
@@ -82,6 +84,14 @@ function initializeEventListeners() {
         if (e.target === productModal) closeModal();
     });
     productForm.addEventListener('submit', handleSubmit);
+    
+    // Búsqueda y filtros
+    if (searchInput) {
+        searchInput.addEventListener('input', handleSearch);
+    }
+    if (filterBrand) {
+        filterBrand.addEventListener('change', handleFilter);
+    }
 }
 
 // ============================================
@@ -216,27 +226,65 @@ async function deleteProduct(productId) {
             await window.supabaseDB.deleteProducto(productId);
             await loadFromSupabase();
             alert('✅ Producto eliminado');
-        }
-    } catch (error) {
-        console.error('❌ Error al eliminar:', error);
-        alert('Error al eliminar el producto');
+   BÚSQUEDA Y FILTROS
+// ============================================
+
+function handleSearch() {
+    const searchTerm = searchInput.value.toLowerCase().trim();
+    const selectedBrand = filterBrand ? filterBrand.value : '';
+    
+    let filtered = inventory;
+    
+    // Filtrar por búsqueda
+    if (searchTerm) {
+        filtered = filtered.filter(p => 
+            p.id.toString().includes(searchTerm) ||
+            p.name.toLowerCase().includes(searchTerm) ||
+            (p.brand && p.brand.toLowerCase().includes(searchTerm))
+        );
     }
+    
+    // Filtrar por marca
+    if (selectedBrand) {
+        filtered = filtered.filter(p => p.brand === selectedBrand);
+    }
+    
+    renderInventory(filtered);
+}
+
+function handleFilter() {
+    handleSearch(); // Reutiliza la lógica de búsqueda
+}
+
+function updateBrandFilter() {
+    if (!filterBrand) return;
+    
+    // Obtener marcas únicas
+    const brands = [...new Set(inventory.map(p => p.brand).filter(b => b))].sort();
+    
+    filterBrand.innerHTML = '<option value="">Todas las marcas</option>' +
+        brands.map(brand => `<option value="${brand}">${brand}</option>`).join('');
 }
 
 // ============================================
 // RENDERIZAR TABLA
 // ============================================
 
-function renderInventory() {
-    if (inventory.length === 0) {
+function renderInventory(productsToShow = inventory) {
+    if (productsToShow.length === 0) {
         inventoryTableBody.innerHTML = '';
-        emptyState.style.display = 'flex';
+        if (inventory.length === 0) {
+            emptyState.style.display = 'flex';
+        } else {
+            inventoryTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;">No se encontraron productos con ese criterio</td></tr>';
+            emptyState.style.display = 'none';
+        }
         return;
     }
     
     emptyState.style.display = 'none';
     
-    inventoryTableBody.innerHTML = inventory.map(product => `
+    inventoryTableBody.innerHTML = productsToShow.map(product => `
         <tr data-id="${product.id}">
             <td><span class="product-code">${product.id}</span></td>
             <td><strong>${product.name}</strong></td>
@@ -248,6 +296,17 @@ function renderInventory() {
                 <div class="action-buttons">
                     <button class="btn-icon btn-edit" onclick="openModalForEdit(${product.id})" title="Editar">
                         <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon btn-delete" onclick="deleteProduct(${product.id})" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    // Actualizar filtro de marcas
+    updateBrandFilter(          <i class="fas fa-edit"></i>
                     </button>
                     <button class="btn-icon btn-delete" onclick="deleteProduct(${product.id})" title="Eliminar">
                         <i class="fas fa-trash"></i>
