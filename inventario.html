@@ -38,56 +38,105 @@
     <!-- Inventario -->
     <section class="inventory">
         <div class="container">
-            <div class="inventory-controls">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar por ID, nombre o marca...">
+            <!-- Categorías -->
+            <div class="categories-section" id="categoriesSection">
+                <div class="categories-header">
+                    <h2><i class="fas fa-tags"></i> Categorías</h2>
+                    <button class="btn-add-category" id="btnAddCategory">
+                        <i class="fas fa-plus"></i> Nueva Categoría
+                    </button>
                 </div>
-                <select id="filterBrand" class="filter-select">
-                    <option value="">Todas las marcas</option>
-                </select>
-                <button class="filter-btn" id="btnClearFilters" style="display: none;">
-                    <i class="fas fa-times"></i> Limpiar
-                </button>
-                <button class="btn-add-product" id="btnAddProduct">
-                    <i class="fas fa-plus"></i> Agregar Producto
-                </button>
+                <div class="categories-grid" id="categoriesGrid">
+                    <!-- Categorías aquí -->
+                </div>
             </div>
 
-            <!-- Tabla de Productos -->
-            <div class="inventory-table-wrapper">
-                <table class="inventory-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Producto</th>
-                            <th>Marca</th>
-                            <th>Peso</th>
-                            <th>Precio Costo</th>
-                            <th>Precio x KG</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryTableBody">
-                        <!-- Productos aquí -->
-                    </tbody>
-                </table>
-            </div>
+            <!-- Productos -->
+            <div class="products-section">
+                <div class="products-header">
+                    <h2><i class="fas fa-box"></i> Productos</h2>
+                    <div class="products-controls">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchProducts" placeholder="Buscar productos...">
+                        </div>
+                        <select id="filterCategory" class="filter-select">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <button class="btn-add-product" id="btnAddProduct">
+                            <i class="fas fa-plus"></i> Nuevo Producto
+                        </button>
+                    </div>
+                </div>
 
-            <!-- Mensaje vacío -->
-            <div id="emptyState" class="empty-state" style="display: none;">
-                <i class="fas fa-box-open"></i>
-                <h3>No hay productos</h3>
-                <p>Agrega tu primer producto</p>
+                <!-- Tabla de Productos -->
+                <div class="products-table-wrapper">
+                    <table class="products-table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio Costo</th>
+                                <th>Precio Final</th>
+                                <th>Stock</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <!-- Productos aquí -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Estado vacío -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <i class="fas fa-box-open"></i>
+                    <h3>No hay productos</h3>
+                    <p>Agrega tu primer producto para comenzar</p>
+                    <button class="btn btn-primary" onclick="document.getElementById('btnAddProduct').click()">
+                        <i class="fas fa-plus"></i> Agregar Producto
+                    </button>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Modal -->
+    <!-- Modal Categoría -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="categoryModalTitle">Nueva Categoría</h2>
+                <button class="modal-close" id="categoryModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">Nombre de la Categoría *</label>
+                    <input type="text" id="categoryName" required placeholder="Ej: Fiambres" maxlength="50">
+                    <small>El ícono y color se generarán automáticamente</small>
+                </div>
+                <div class="form-group">
+                    <label for="categoryDescription">Descripción (opcional)</label>
+                    <textarea id="categoryDescription" rows="3" placeholder="Descripción de la categoría..." maxlength="200"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-cancel" id="categoryCancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Producto -->
     <div id="productModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Agregar Producto</h2>
+                <h2 id="modalTitle">Nuevo Producto</h2>
                 <button class="modal-close" id="modalClose">
                     <i class="fas fa-times"></i>
                 </button>
@@ -96,23 +145,39 @@
                 <div class="form-grid">
                     <div class="form-group full-width">
                         <label for="productName">Nombre del Producto *</label>
-                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido" maxlength="100">
+                        <input type="text" id="productName" required placeholder="Ej: Jamón Cocido Premium">
                     </div>
+                    
                     <div class="form-group">
-                        <label for="productBrand">Marca</label>
-                        <input type="text" id="productBrand" placeholder="Ej: La Serenísima" maxlength="50">
+                        <label for="productCode">Código *</label>
+                        <input type="text" id="productCode" required placeholder="Ej: JAM001">
                     </div>
+                    
                     <div class="form-group">
-                        <label for="productWeight">Peso (kg) *</label>
-                        <input type="number" id="productWeight" step="0.001" min="0.001" required placeholder="0.000">
+                        <label for="productCategory">Categoría *</label>
+                        <select id="productCategory" required>
+                            <option value="">Seleccionar categoría</option>
+                        </select>
                     </div>
+                    
                     <div class="form-group">
-                        <label for="productCostPrice">Precio Costo ($)</label>
-                        <input type="number" id="productCostPrice" step="0.01" min="0" placeholder="0.00">
+                        <label for="productCostPrice">Precio Costo ($) *</label>
+                        <input type="number" id="productCostPrice" step="0.01" min="0.01" required placeholder="0.00">
                     </div>
+                    
                     <div class="form-group">
-                        <label for="productPricePerKg">Precio por KG ($) *</label>
-                        <input type="number" id="productPricePerKg" step="0.01" min="0.01" required placeholder="0.00">
+                        <label for="productPrice">Precio Final ($) *</label>
+                        <input type="number" id="productPrice" step="0.01" min="0.01" required placeholder="0.00">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productStock">Stock (unidades) *</label>
+                        <input type="number" id="productStock" min="0" required placeholder="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="productMinStock">Stock Mínimo *</label>
+                        <input type="number" id="productMinStock" min="0" required placeholder="0">
                     </div>
                 </div>
                 <div class="form-actions">

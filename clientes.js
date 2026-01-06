@@ -48,6 +48,9 @@ async function loadClients() {
             console.log('📦 Clientes cargados desde localStorage:', clients.length);
         }
         
+        // Exponer globalmente
+        window.clients = clients;
+        
         renderClients();
         updateStats();
     } catch (error) {
@@ -57,6 +60,7 @@ async function loadClients() {
         // Fallback a localStorage en caso de error
         const stored = localStorage.getItem('distributoraMC_clients');
         clients = stored ? JSON.parse(stored) : [];
+        window.clients = clients;
         renderClients();
         updateStats();
     }
@@ -319,7 +323,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadClients();
 });
 
-// Exponer funciones globalmente
+// Exponer funciones y datos globalmente
 window.editClient = editClient;
 window.confirmDeleteClient = confirmDeleteClient;
 window.openClientModal = openClientModal;
+window.clients = clients;
+window.getClients = () => clients;

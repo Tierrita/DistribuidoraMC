@@ -219,16 +219,16 @@ let nextCategoryId = 1;
 let useSupabase = false;
 
 // Elementos del DOM - Productos
-const inventoryTableBody = document.getElementById('inventoryTableBody');
+const productsTableBody = document.getElementById('productsTableBody');
 const productModal = document.getElementById('productModal');
 const productForm = document.getElementById('productForm');
 const btnAddProduct = document.getElementById('btnAddProduct');
 const modalClose = document.getElementById('modalClose');
 const btnCancel = document.getElementById('btnCancel');
-const searchInput = document.getElementById('searchInput');
+const searchProducts = document.getElementById('searchProducts');
 const emptyState = document.getElementById('emptyState');
 const modalTitle = document.getElementById('modalTitle');
-const dynamicFilters = document.getElementById('dynamicFilters');
+const filterCategory = document.getElementById('filterCategory');
 
 // Elementos del DOM - Categorías
 const categoriesGrid = document.getElementById('categoriesGrid');
@@ -236,14 +236,8 @@ const categoryModal = document.getElementById('categoryModal');
 const categoryForm = document.getElementById('categoryForm');
 const btnAddCategory = document.getElementById('btnAddCategory');
 const categoryModalClose = document.getElementById('categoryModalClose');
-const btnCancelCategory = document.getElementById('btnCancelCategory');
-const emptyCategoriesState = document.getElementById('emptyCategoriesState');
+const categoryCancelBtn = document.getElementById('categoryCancelBtn');
 const categoryModalTitle = document.getElementById('categoryModalTitle');
-
-// Elementos del DOM - Tabs
-const inventoryTabButtons = document.querySelectorAll('.tab-btn');
-const tabProductos = document.getElementById('tabProductos');
-const tabCategorias = document.getElementById('tabCategorias');
 
 // ============================================
 // INICIALIZACIÓN
@@ -515,53 +509,25 @@ function addSampleProducts() {
 // ============================================
 
 function initializeEventListeners() {
-    // Tabs
-    inventoryTabButtons.forEach(btn => {
-        btn.addEventListener('click', handleTabChange);
-    });
-    
     // Productos
-    btnAddProduct.addEventListener('click', openModalForAdd);
-    modalClose.addEventListener('click', closeProductModal);
-    btnCancel.addEventListener('click', closeProductModal);
-    productModal.addEventListener('click', (e) => {
+    if (btnAddProduct) btnAddProduct.addEventListener('click', openModalForAdd);
+    if (modalClose) modalClose.addEventListener('click', closeProductModal);
+    if (btnCancel) btnCancel.addEventListener('click', closeProductModal);
+    if (productModal) productModal.addEventListener('click', (e) => {
         if (e.target === productModal) closeProductModal();
     });
-    productForm.addEventListener('submit', handleProductFormSubmit);
-    searchInput.addEventListener('input', handleSearch);
+    if (productForm) productForm.addEventListener('submit', handleProductFormSubmit);
+    if (searchProducts) searchProducts.addEventListener('input', handleSearch);
+    if (filterCategory) filterCategory.addEventListener('change', handleCategoryFilter);
     
     // Categorías
-    btnAddCategory.addEventListener('click', openCategoryModalForAdd);
-    categoryModalClose.addEventListener('click', closeCategoryModal);
-    btnCancelCategory.addEventListener('click', closeCategoryModal);
-    categoryModal.addEventListener('click', (e) => {
+    if (btnAddCategory) btnAddCategory.addEventListener('click', openCategoryModalForAdd);
+    if (categoryModalClose) categoryModalClose.addEventListener('click', closeCategoryModal);
+    if (categoryCancelBtn) categoryCancelBtn.addEventListener('click', closeCategoryModal);
+    if (categoryModal) categoryModal.addEventListener('click', (e) => {
         if (e.target === categoryModal) closeCategoryModal();
     });
-    categoryForm.addEventListener('submit', handleCategoryFormSubmit);
-}
-
-// ============================================
-// TABS
-// ============================================
-
-function handleTabChange(e) {
-    const targetTab = e.currentTarget.dataset.tab;
-    
-    // Actualizar botones
-    inventoryTabButtons.forEach(btn => btn.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    
-    // Actualizar contenido
-    tabProductos.classList.remove('active');
-    tabCategorias.classList.remove('active');
-    
-    if (targetTab === 'productos') {
-        tabProductos.classList.add('active');
-    } else {
-        tabCategorias.classList.add('active');
-    }
-    
-    currentTab = targetTab;
+    if (categoryForm) categoryForm.addEventListener('submit', handleCategoryFormSubmit);
 }
 
 // ============================================
@@ -569,15 +535,12 @@ function handleTabChange(e) {
 // ============================================
 
 function renderCategories() {
-    if (!categoriesGrid || !emptyCategoriesState) return; // Protección si los elementos no existen
+    if (!categoriesGrid) return; // Protección si los elementos no existen
     
     if (categories.length === 0) {
-        categoriesGrid.innerHTML = '';
-        emptyCategoriesState.style.display = 'flex';
+        categoriesGrid.innerHTML = '<div class="empty-state-mini"><i class="fas fa-tags"></i><p>No hay categorías. Crea la primera.</p></div>';
         return;
     }
-    
-    emptyCategoriesState.style.display = 'none';
     
     categoriesGrid.innerHTML = categories.map(cat => {
         const productCount = inventory.filter(p => p.category === cat.slug).length;
@@ -615,9 +578,8 @@ function renderCategories() {
 
 function openCategoryModalForAdd() {
     editingCategoryId = null;
-    categoryModalTitle.textContent = 'Agregar Categoría';
+    categoryModalTitle.textContent = 'Nueva Categoría';
     categoryForm.reset();
-    document.getElementById('categoryColor').value = '#8B0000';
     categoryModal.classList.add('active');
 }
 
@@ -628,9 +590,10 @@ function openCategoryModalForEdit(categoryId) {
     const category = categories.find(c => c.id === categoryId);
     if (category) {
         document.getElementById('categoryName').value = category.name;
-        document.getElementById('categoryIcon').value = category.icon;
-        document.getElementById('categoryColor').value = category.color;
-        document.getElementById('categoryDescription').value = category.description || '';
+        const descriptionField = document.getElementById('categoryDescription');
+        if (descriptionField) {
+            descriptionField.value = category.description || '';
+        }
     }
     
     categoryModal.classList.add('active');
@@ -804,28 +767,33 @@ async function deleteCategory(categoryId) {
 // ============================================
 
 function loadCategoryFilters() {
-    dynamicFilters.innerHTML = `
-        <button class="filter-btn active" data-category="todos">
-            <i class="fas fa-th"></i> Todos
-        </button>
+    if (!filterCategory) return;
+    
+    filterCategory.innerHTML = `
+        <option value="">Todas las categorías</option>
         ${categories.map(cat => `
-            <button class="filter-btn" data-category="${cat.slug}">
-                <i class="fas ${cat.icon}"></i> ${cat.name}
-            </button>
+            <option value="${cat.slug}">${cat.name}</option>
         `).join('')}
     `;
+}
+
+function handleCategoryFilter(e) {
+    const categorySlug = e.target.value;
     
-    // Agregar event listeners a los nuevos botones
-    const filterButtons = document.querySelectorAll('#dynamicFilters .filter-btn');
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', handleFilter);
-    });
+    if (categorySlug === '') {
+        renderInventory(inventory);
+    } else {
+        const filtered = inventory.filter(p => p.category === categorySlug);
+        renderInventory(filtered);
+    }
 }
 
 function loadCategoryOptions() {
     const select = document.getElementById('productCategory');
+    if (!select) return;
+    
     select.innerHTML = `
-        <option value="">Seleccionar...</option>
+        <option value="">Seleccionar categoría</option>
         ${categories.map(cat => `
             <option value="${cat.slug}">${cat.name}</option>
         `).join('')}
@@ -1025,17 +993,17 @@ async function deleteProduct(productId) {
 }
 
 function renderInventory(productsToRender = inventory) {
-    if (!inventoryTableBody || !emptyState) return; // Protección si los elementos no existen
+    if (!productsTableBody || !emptyState) return; // Protección si los elementos no existen
     
     if (productsToRender.length === 0) {
-        inventoryTableBody.innerHTML = '';
+        productsTableBody.innerHTML = '';
         emptyState.style.display = 'flex';
         return;
     }
     
     emptyState.style.display = 'none';
     
-    inventoryTableBody.innerHTML = productsToRender.map(product => {
+    productsTableBody.innerHTML = productsToRender.map(product => {
         const stockStatus = getStockStatus(product.stock, product.minStock);
         const category = categories.find(c => c.slug === product.category);
         const categoryName = category ? category.name : product.category;
@@ -1106,15 +1074,21 @@ function getStockStatus(stock, minStock) {
 }
 
 function updateStats() {
+    // Estadísticas opcionales - solo actualizar si los elementos existen en el HTML
     const totalProducts = inventory.length;
     const lowStock = inventory.filter(p => p.stock <= p.minStock && p.stock > 0).length;
     const normalStock = inventory.filter(p => p.stock > p.minStock).length;
     const totalValue = inventory.reduce((sum, p) => sum + (p.price * p.stock), 0);
     
-    document.getElementById('totalProducts').textContent = totalProducts;
-    document.getElementById('lowStock').textContent = lowStock;
-    document.getElementById('normalStock').textContent = normalStock;
-    document.getElementById('totalValue').textContent = `$${totalValue.toFixed(2)}`;
+    const totalProductsEl = document.getElementById('totalProducts');
+    const lowStockEl = document.getElementById('lowStock');
+    const normalStockEl = document.getElementById('normalStock');
+    const totalValueEl = document.getElementById('totalValue');
+    
+    if (totalProductsEl) totalProductsEl.textContent = totalProducts;
+    if (lowStockEl) lowStockEl.textContent = lowStock;
+    if (normalStockEl) normalStockEl.textContent = normalStock;
+    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toFixed(2)}`;
 }
 
 function handleSearch(e) {
@@ -1241,7 +1215,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Si estamos en la página de inventario, renderizar
     if (document.getElementById('productsTableBody')) {
-        renderProducts();
+        renderInventory();
         renderCategories();
     }
     
