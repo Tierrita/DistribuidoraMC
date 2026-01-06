@@ -36,8 +36,8 @@
     <!-- Page Header -->
     <section class="page-header">
         <div class="container">
-            <h1><i class="fas fa-shopping-cart"></i> Gestión de Pedidos</h1>
-            <p>Arma nuevos pedidos y consulta el historial completo</p>
+            <h1><i class="fas fa-shopping-cart"></i> Gestión de Ventas</h1>
+            <p>Registra nuevas ventas y consulta el historial completo</p>
         </div>
     </section>
 
@@ -47,10 +47,10 @@
             <!-- Tabs de Navegación -->
             <div class="orders-tabs">
                 <button class="tab-btn active" data-tab="nuevo-pedido">
-                    <i class="fas fa-cart-plus"></i> Nuevo Pedido
+                    <i class="fas fa-cart-plus"></i> Nueva Venta
                 </button>
                 <button class="tab-btn" data-tab="historial">
-                    <i class="fas fa-list"></i> Historial de Pedidos
+                    <i class="fas fa-list"></i> Historial de Ventas
                 </button>
             </div>
 
@@ -68,7 +68,7 @@
                             <div class="form-group full-width">
                                 <label for="clientSearch">Buscar Cliente *</label>
                                 <div class="client-search-wrapper">
-                                    <input type="text" id="clientSearch" placeholder="Buscar por nombre o teléfono..." autocomplete="off" autofocus>
+                                    <input type="text" id="clientSearch" placeholder="Haz click para ver todos los clientes o busca por nombre/teléfono..." autocomplete="off" autofocus>
                                     <i class="fas fa-search"></i>
                                 </div>
                                 <div id="clientSearchResults" class="client-search-results"></div>
@@ -93,19 +93,13 @@
                                 </div>
                             </div>
 
-                            <!-- Notas del pedido -->
-                            <div class="form-group full-width">
-                                <label for="newOrderNotes">Notas del Pedido (opcional)</label>
-                                <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales sobre este pedido..." maxlength="500"></textarea>
-                            </div>
-
                             <!-- Botón de continuar (se activa solo cuando hay cliente seleccionado) -->
                             <div class="form-actions">
                                 <a href="clientes.html" class="btn btn-secondary">
                                     <i class="fas fa-user-plus"></i> Nuevo Cliente
                                 </a>
                                 <button type="submit" class="btn btn-primary btn-large" id="btnContinueOrder" disabled>
-                                    <i class="fas fa-arrow-right"></i> Continuar al Pedido
+                                    <i class="fas fa-arrow-right"></i> Armar Venta
                                 </button>
                             </div>
                         </form>
@@ -199,7 +193,7 @@
 
                                 <!-- Botón de Checkout -->
                                 <button class="btn-checkout-pos" id="btnCheckoutPos" onclick="confirmNewOrder()" disabled>
-                                    <i class="fas fa-check-circle"></i> Confirmar Pedido
+                                    <i class="fas fa-save"></i> Guardar Venta
                                 </button>
                             </div>
                         </div>
@@ -213,17 +207,17 @@
                 <div class="orders-history-controls">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="historySearchInput" placeholder="Buscar por número de pedido o cliente...">
+                        <input type="text" id="historySearchInput" placeholder="Buscar por número de venta o cliente...">
                     </div>
                     <div class="filter-buttons">
                         <button class="filter-btn active" data-status="todos">
-                            <i class="fas fa-th"></i> Todos
+                            <i class="fas fa-th"></i> Todas
                         </button>
-                        <button class="filter-btn" data-status="pending">
-                            <i class="fas fa-clock"></i> Pendientes
+                        <button class="filter-btn" data-status="pendiente">
+                            <i class="fas fa-clock"></i> Por Entregar
                         </button>
-                        <button class="filter-btn" data-status="completed">
-                            <i class="fas fa-check-circle"></i> Completados
+                        <button class="filter-btn" data-status="entregado">
+                            <i class="fas fa-check-circle"></i> Entregadas
                         </button>
                         <button class="filter-btn" data-status="cancelled">
                             <i class="fas fa-times-circle"></i> Cancelados
@@ -349,21 +343,21 @@
         <div class="modal-content confirmation-content">
             <div class="confirmation-success">
                 <i class="fas fa-check-circle"></i>
-                <h2>¡Pedido Confirmado!</h2>
-                <p>Tu pedido ha sido registrado exitosamente</p>
+                <h2>¡Venta Registrada!</h2>
+                <p>La venta ha sido guardada exitosamente</p>
                 <div class="order-number">
-                    <strong>Número de Pedido:</strong>
+                    <strong>Número de Venta:</strong>
                     <span id="orderNumber">#0000</span>
                 </div>
                 <p class="confirmation-message">
-                    Te contactaremos pronto para coordinar la entrega.
+                    La venta fue agregada al historial y está marcada como "Por Entregar".
                 </p>
                 <div class="confirmation-actions">
                     <button class="btn btn-primary" id="btnNewOrder">
-                        <i class="fas fa-plus"></i> Hacer Nuevo Pedido
+                        <i class="fas fa-plus"></i> Nueva Venta
                     </button>
                     <button class="btn btn-secondary" id="btnViewOrders">
-                        <i class="fas fa-list"></i> Ver Mis Pedidos
+                        <i class="fas fa-list"></i> Ver Historial
                     </button>
                 </div>
             </div>

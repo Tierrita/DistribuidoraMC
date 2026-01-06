@@ -1155,7 +1155,7 @@ async function handleCheckoutSubmit(e) {
         subtotal: getCartTotal(),
         discount: 0,
         total: getCartTotal(),
-        notes: document.getElementById('orderNotes').value.trim(),
+        notes: '',
         status: 'pendiente',
         payment_method: null,
         paid: false
@@ -1243,12 +1243,15 @@ async function handleCheckoutSubmit(e) {
 }
 
 function generateOrderNumber() {
-    const date = new Date();
-    const year = date.getFullYear().toString().substr(-2);
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
-    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    return `${year}${month}${day}${random}`;
+    // Obtener el último número de venta
+    const lastNumber = orders.length > 0 ? 
+        Math.max(...orders.map(o => {
+            const match = o.orderNumber.match(/\d+/);
+            return match ? parseInt(match[0]) : 0;
+        })) : 0;
+    
+    const nextNumber = lastNumber + 1;
+    return nextNumber.toString().padStart(3, '0');
 }
 
 // ============================================
@@ -1417,12 +1420,21 @@ function renderOrdersHistory(ordersToRender = null) {
             minute: '2-digit'
         });
         
+        // Generar lista completa de productos
+        const productsList = order.items.map(item => `
+            <div class="product-item-row">
+                <span class="product-name">${item.name}</span>
+                <span class="product-quantity">x${item.quantity}</span>
+                <span class="product-price">$${(item.price * item.quantity).toFixed(2)}</span>
+            </div>
+        `).join('');
+        
         return `
             <div class="order-history-card" data-order-id="${order.id}">
                 <div class="order-header">
                     <div class="order-number">
                         <i class="fas fa-receipt"></i>
-                        <span>Pedido #${order.orderNumber}</span>
+                        <span>Venta #${order.orderNumber}</span>
                     </div>
                     <span class="order-status ${statusInfo.class}">
                         <i class="${statusInfo.icon}"></i>
@@ -1433,11 +1445,15 @@ function renderOrdersHistory(ordersToRender = null) {
                 <div class="order-customer-info">
                     <div class="info-item">
                         <i class="fas fa-user"></i>
-                        <span>${order.customer.name}</span>
+                        <strong>${order.customer.name}</strong>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-phone"></i>
                         <span>${order.customer.phone}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${order.customer.address || 'Sin dirección'}</span>
                     </div>
                     <div class="info-item">
                         <i class="fas fa-calendar"></i>
@@ -1445,27 +1461,23 @@ function renderOrdersHistory(ordersToRender = null) {
                     </div>
                 </div>
                 
-                <div class="order-items-summary">
-                    <strong>${order.items.length}</strong> producto${order.items.length !== 1 ? 's' : ''} 
-                    (${order.items.reduce((sum, item) => sum + item.quantity, 0)} unidades)
+                <div class="order-products-list">
+                    <h4><i class="fas fa-box"></i> Productos:</h4>
+                    ${productsList}
                 </div>
                 
                 <div class="order-footer">
                     <div class="order-total">
-                        Total: <strong>$${order.total.toFixed(2)}</strong>
+                        <strong>Total: $${order.total.toFixed(2)}</strong>
                     </div>
                     <div class="order-actions">
-                        <button class="btn-icon" onclick="viewOrderDetails(${order.id})" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </button>
+                        <select class="order-status-select" onchange="changeOrderStatus(${order.id}, this.value)">
+                            <option value="pendiente" ${order.status === 'pendiente' ? 'selected' : ''}>Por Entregar</option>
+                            <option value="entregado" ${order.status === 'entregado' ? 'selected' : ''}>Entregado</option>
+                        </select>
                         <button class="btn-icon btn-success" onclick="exportSingleOrder(${order.id})" title="Exportar a Excel">
                             <i class="fas fa-file-excel"></i>
                         </button>
-                        <select class="order-status-select" onchange="changeOrderStatus(${order.id}, this.value)">
-                            <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pendiente</option>
-                            <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completado</option>
-                            <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelado</option>
-                        </select>
                         <button class="btn-icon btn-delete" onclick="deleteOrder(${order.id})" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -1478,23 +1490,30 @@ function renderOrdersHistory(ordersToRender = null) {
 
 function getOrderStatusInfo(status) {
     const statusMap = {
-        pending: {
+        'pendiente': {
             class: 'status-pending',
             icon: 'fas fa-clock',
-            text: 'Pendiente'
+            text: 'Por Entregar'
         },
-        completed: {
+        'entregado': {
             class: 'status-completed',
             icon: 'fas fa-check-circle',
-            text: 'Completado'
+            text: 'Entregado'
         },
-        cancelled: {
-            class: 'status-cancelled',
-            icon: 'fas fa-times-circle',
-            text: 'Cancelado'
+        // Mantener compatibilidad con estados antiguos
+        'pending': {
+            class: 'status-pending',
+            icon: 'fas fa-clock',
+            text: 'Por Entregar'
+        },
+        'completed': {
+            class: 'status-completed',
+            icon: 'fas fa-check-circle',
+            text: 'Entregado'
         }
     };
-    return statusMap[status] || statusMap.pending;
+    return statusMap[status] || statusMap.pendiente;
+}
 }
 
 // ============================================
