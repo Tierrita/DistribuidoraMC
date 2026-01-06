@@ -180,12 +180,19 @@ function handleSearch() {
     const searchTerm = searchInput.value.toLowerCase().trim();
     const selectedBrand = filterBrand ? filterBrand.value : '';
     let filtered = inventory;
+    
+    // Filtrar por búsqueda
     if (searchTerm) {
         filtered = filtered.filter(p => 
             p.id.toString().includes(searchTerm) ||
             p.name.toLowerCase().includes(searchTerm) ||
             (p.brand && p.brand.toLowerCase().includes(searchTerm))
         );
+    }
+    
+    // Filtrar por marca
+    if (selectedBrand) {
+        filtered = filtered.filter(p => p.brand === selectedBrand);
     }
     
     // Mostrar/ocultar botón de limpiar
