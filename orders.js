@@ -216,7 +216,10 @@ function initializeClientSelector() {
     const clientSearchResults = document.getElementById('clientSearchResults');
     const btnContinueOrder = document.getElementById('btnContinueOrder');
     
-    if (!clientSearchInput) return;
+    if (!clientSearchInput || !clientSearchResults) {
+        console.warn('⚠️ Elementos de búsqueda de clientes no encontrados');
+        return;
+    }
     
     // Mostrar todos los clientes al hacer focus o click
     clientSearchInput.addEventListener('focus', () => {
@@ -227,10 +230,8 @@ function initializeClientSelector() {
         showAllClients();
     });
     
-    // Búsqueda en tiempo real (filtra mientras escribes)
-    clientSearchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        
+    // Búsqueda en tiempo real con debounce (filtra mientras escribes)
+    const debouncedSearch = debounce((query) => {
         // Si no hay texto, mostrar todos
         if (query.length === 0) {
             showAllClients();
@@ -250,6 +251,11 @@ function initializeClientSelector() {
         
         // Mostrar resultados filtrados en tiempo real
         displayClientResults(filtered, query);
+    }, 300);
+    
+    clientSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        debouncedSearch(query);
     });
     
     // Cerrar resultados al hacer click fuera
@@ -263,6 +269,8 @@ function initializeClientSelector() {
 // Mostrar todos los clientes disponibles
 function showAllClients() {
     const clientSearchResults = document.getElementById('clientSearchResults');
+    
+    if (!clientSearchResults) return;
     
     if (allClients.length === 0) {
         clientSearchResults.innerHTML = `
@@ -284,6 +292,8 @@ function showAllClients() {
 // Mostrar lista de clientes (con resaltado opcional de búsqueda)
 function displayClientResults(clients, query = '') {
     const clientSearchResults = document.getElementById('clientSearchResults');
+    
+    if (!clientSearchResults) return;
     
     if (clients.length > 0) {
         const maxResults = 10; // Mostrar máximo 10 resultados
@@ -335,7 +345,7 @@ function displayClientResults(clients, query = '') {
 
 // Seleccionar un cliente
 function selectClient(clientId) {
-    selectedClient = allClients.find(c => c.id == clientId);
+    selectedClient = allClients.find(c => c.id === clientId);
     
     if (!selectedClient) return;
     
@@ -561,14 +571,19 @@ async function loadOrdersFromStorage() {
             return;
         }
     } catch (error) {
-        console.error('Error al cargar pedidos desde Supabase:', error);
+        console.error('⚠️ Error al cargar pedidos desde Supabase:', error);
     }
     
     // Fallback a localStorage
-    const stored = localStorage.getItem('distributoraMC_orders');
-    if (stored) {
-        orders = JSON.parse(stored);
-        console.log('📦 Pedidos cargados desde localStorage:', orders.length);
+    try {
+        const stored = localStorage.getItem('distributoraMC_orders');
+        if (stored) {
+            orders = JSON.parse(stored);
+            console.log('📦 Pedidos cargados desde localStorage:', orders.length);
+        }
+    } catch (error) {
+        console.error('⚠️ Error al cargar desde localStorage:', error);
+        orders = [];
     }
 }
 
@@ -632,6 +647,11 @@ function initializeOrdersEventListeners() {
 // ============================================
 
 function renderProductsForOrders(productsToRender = null) {
+    if (!productsOrderGrid || !emptyOrderState) {
+        console.warn('⚠️ Elementos del grid de productos no encontrados');
+        return;
+    }
+    
     // Obtener productos del inventario
     const products = productsToRender || (window.inventory || []);
     const categoryIcons = getCategoryIcons();
@@ -1503,13 +1523,25 @@ function getOrderStatusInfo(status) {
 // ACCIONES DEL HISTORIAL
 // ============================================
 
-function changeOrderStatus(orderId, newStatus) {
+async function changeOrderStatus(orderId, newStatus) {
     const order = orders.find(o => o.id === orderId);
-    if (order) {
+    if (!order) return;
+    
+    try {
+        // Actualizar en Supabase si está disponible
+        if (window.supabaseDB && typeof window.supabaseDB.updatePedidoStatus === 'function') {
+            await window.supabaseDB.updatePedidoStatus(orderId, newStatus);
+            console.log('✅ Estado actualizado en Supabase');
+        }
+        
+        // Actualizar localmente
         order.status = newStatus;
         saveOrdersToStorage();
         renderOrdersHistory();
-        showNotification(`Estado del pedido actualizado a ${getOrderStatusInfo(newStatus).text}`, 'success');
+        showNotification(`Estado actualizado a ${getOrderStatusInfo(newStatus).text}`, 'success');
+    } catch (error) {
+        console.error('Error al actualizar estado:', error);
+        showNotification('Error al actualizar el estado', 'error');
     }
 }
 
@@ -1731,62 +1763,26 @@ function exportSingleOrder(orderId) {
 
 function escapeHtml(text) {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
 
-// ============================================
-// INICIALIZACIÓN
-// ============================================
-
-// Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Inicializando Sistema de Pedidos MC...');
-    
-    // PRIMERO: Inicializar elementos del DOM
-    initializeDOMElements();
-    
-    // SEGUNDO: Cargar datos desde localStorage
-    loadCartFromStorage();
-    loadOrdersFromStorage();
-    
-    // TERCERO: Inicializar event listeners (antes de renderizar)
-    initializeOrdersEventListeners();
-    initializeTabsEventListeners();
-    
-    // CUARTO: Esperar a que el inventario esté disponible
-    const waitForInventory = setInterval(() => {
-        if (window.inventory && window.inventory.length >= 0) {
-            clearInterval(waitForInventory);
-            
-            console.log(`📦 Inventario cargado: ${window.inventory.length} productos`);
-            
-            // Renderizar productos
-            renderProductsForOrders();
-            
-            // Renderizar filtros de categorías
-            renderOrderCategoryFilters();
-            
-            // Renderizar carrito POS
-            renderPosCart();
-            
-            // Actualizar badge del carrito
-            updateCartBadge();
-            
-            console.log('✅ Sistema de Pedidos MC cargado correctamente! 🛒');
-        }
-    }, 50);
-    
-    // Timeout de seguridad (5 segundos)
-    setTimeout(() => {
-        clearInterval(waitForInventory);
-        if (!window.inventory) {
-            console.warn('⚠️ No se pudo cargar el inventario');
-            window.inventory = [];
-            renderProductsForOrders();
-            renderOrderCategoryFilters();
-        }
-    }, 5000);
-});
+// Debounce para optimizar búsquedas
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
 
