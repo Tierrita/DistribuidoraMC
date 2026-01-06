@@ -241,7 +241,7 @@ const emptyCategoriesState = document.getElementById('emptyCategoriesState');
 const categoryModalTitle = document.getElementById('categoryModalTitle');
 
 // Elementos del DOM - Tabs
-const tabButtons = document.querySelectorAll('.tab-btn');
+const inventoryTabButtons = document.querySelectorAll('.tab-btn');
 const tabProductos = document.getElementById('tabProductos');
 const tabCategorias = document.getElementById('tabCategorias');
 
@@ -516,7 +516,7 @@ function addSampleProducts() {
 
 function initializeEventListeners() {
     // Tabs
-    tabButtons.forEach(btn => {
+    inventoryTabButtons.forEach(btn => {
         btn.addEventListener('click', handleTabChange);
     });
     
@@ -548,7 +548,7 @@ function handleTabChange(e) {
     const targetTab = e.currentTarget.dataset.tab;
     
     // Actualizar botones
-    tabButtons.forEach(btn => btn.classList.remove('active'));
+    inventoryTabButtons.forEach(btn => btn.classList.remove('active'));
     e.currentTarget.classList.add('active');
     
     // Actualizar contenido
