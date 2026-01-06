@@ -4,6 +4,101 @@
 
 let salesByDayChart, monthlyRevenueChart, categoriesChart;
 
+// ============================================
+// DATOS DE DEMOSTRACIÓN 2025 (+30% CRECIMIENTO)
+// ============================================
+
+function generateMockData2025() {
+    // Productos de demostración
+    const productos = [
+        { id: 1, name: 'Jamón Cocido Premium', code: 'JAM-001', category: 'Jamones', price: 3500, stock: 45, minStock: 20 },
+        { id: 2, name: 'Salame Italiano', code: 'SAL-002', category: 'Embutidos', price: 4200, stock: 38, minStock: 15 },
+        { id: 3, name: 'Queso Muzzarella', code: 'QUE-003', category: 'Quesos', price: 2800, stock: 52, minStock: 25 },
+        { id: 4, name: 'Mortadela con Aceitunas', code: 'MOR-004', category: 'Embutidos', price: 2200, stock: 8, minStock: 15 },
+        { id: 5, name: 'Jamón Crudo', code: 'JAM-005', category: 'Jamones', price: 5500, stock: 28, minStock: 10 },
+        { id: 6, name: 'Queso Provolone', code: 'QUE-006', category: 'Quesos', price: 3800, stock: 6, minStock: 12 },
+        { id: 7, name: 'Salchichón', code: 'SAL-007', category: 'Embutidos', price: 3200, stock: 41, minStock: 18 },
+        { id: 8, name: 'Pavita al Roquefort', code: 'PAV-008', category: 'Carnes Frías', price: 4800, stock: 22, minStock: 15 },
+    ];
+    
+    // Clientes de demostración
+    const clientes = [
+        { id: 1, name: 'Carnicería El Buen Sabor', phone: '2475-123456' },
+        { id: 2, name: 'Supermercado La Esquina', phone: '2475-234567' },
+        { id: 3, name: 'Fiambrería Don José', phone: '2475-345678' },
+        { id: 4, name: 'Almacén Los Tres Hermanos', phone: '2475-456789' },
+        { id: 5, name: 'Rotisería El Buen Gusto', phone: '2475-567890' },
+        { id: 6, name: 'Parrilla La Estancia', phone: '2475-678901' },
+        { id: 7, name: 'Comercio La Familia', phone: '2475-789012' },
+    ];
+    
+    // Generar pedidos del 2025 (último año completo + enero 2026)
+    const pedidos = [];
+    let pedidoId = 1;
+    
+    // Base mensual (con crecimiento del 30% vs 2024)
+    const baseMonthly2024 = 180000; // Base 2024
+    const baseMonthly2025 = baseMonthly2024 * 1.3; // +30% en 2025
+    
+    // Generar pedidos para 2025 (12 meses) + enero 2026
+    for (let mes = 0; mes < 13; mes++) {
+        const fecha = new Date(2025, mes, 1);
+        const diasEnMes = new Date(2025, mes + 1, 0).getDate();
+        
+        // Variación estacional (+20% dic, +15% jun/jul)
+        let factorEstacional = 1;
+        if (mes === 11) factorEstacional = 1.2; // Diciembre
+        if (mes === 5 || mes === 6) factorEstacional = 1.15; // Jun/Jul
+        
+        const ingresoMensual = baseMonthly2025 * factorEstacional;
+        const pedidosPorMes = 18 + Math.floor(Math.random() * 8); // 18-25 pedidos/mes
+        
+        for (let p = 0; p < pedidosPorMes; p++) {
+            const dia = Math.floor(Math.random() * diasEnMes) + 1;
+            const fechaPedido = new Date(2025, mes, dia);
+            
+            // Si es enero 2026, ajustar año
+            if (mes === 12) {
+                fechaPedido.setFullYear(2026);
+            }
+            
+            const cliente = clientes[Math.floor(Math.random() * clientes.length)];
+            const numItems = 2 + Math.floor(Math.random() * 5); // 2-6 items por pedido
+            const items = [];
+            let total = 0;
+            
+            for (let i = 0; i < numItems; i++) {
+                const producto = productos[Math.floor(Math.random() * productos.length)];
+                const cantidad = 1 + Math.floor(Math.random() * 8); // 1-8 unidades
+                const subtotal = producto.price * cantidad;
+                
+                items.push({
+                    productId: producto.id,
+                    producto_id: producto.id,
+                    quantity: cantidad,
+                    cantidad: cantidad,
+                    price: producto.price,
+                    subtotal: subtotal
+                });
+                
+                total += subtotal;
+            }
+            
+            pedidos.push({
+                id: pedidoId++,
+                fecha: fechaPedido.toISOString().split('T')[0],
+                cliente_id: cliente.id,
+                customer: { id: cliente.id, name: cliente.name },
+                items: items,
+                total: total,
+                estado: 'completado'
+            });
+        }
+    }
+    
+    return { pedidos, productos, clientes };
+}
+
 // Cargar datos al iniciar
 document.addEventListener('DOMContentLoaded', async () => {
     await loadDashboardData();
@@ -12,9 +107,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadDashboardData() {
     try {
         // Cargar datos desde Supabase o localStorage
-        const pedidos = await getPedidos();
-        const productos = await getProductos();
-        const clientes = await getClientes();
+        let pedidos = await getPedidos();
+        let productos = await getProductos();
+        let clientes = await getClientes();
+        
+        // Si no hay datos reales, usar datos de demostración del 2025
+        const useMockData = pedidos.length === 0;
+        if (useMockData) {
+            console.log('📊 Usando datos de demostración del 2025 (+30% crecimiento)');
+            const mockData = generateMockData2025();
+            pedidos = mockData.pedidos;
+            productos = mockData.productos;
+            clientes = mockData.clientes;
+        }
         
         // Actualizar cards
         updateStatsCards(pedidos, productos, clientes);
