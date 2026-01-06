@@ -1009,10 +1009,11 @@ function renderInventory(productsToRender = inventory) {
         const categoryName = category ? category.name : product.category;
         const categoryIcon = category ? category.icon : 'fa-box';
         const costPrice = product.costPrice || 0;
+        const productCode = product.code || product.id || 'N/A';
         
         return `
             <tr data-id="${product.id}">
-                <td><span class="product-code">${product.code}</span></td>
+                <td><span class="product-code">${productCode}</span></td>
                 <td><strong>${product.name}</strong></td>
                 <td>
                     <span class="category-badge" style="background: ${category?.color}20; color: ${category?.color}">
@@ -1095,7 +1096,7 @@ function handleSearch(e) {
     const searchTerm = e.target.value.toLowerCase();
     const filtered = inventory.filter(product => 
         product.name.toLowerCase().includes(searchTerm) ||
-        product.code.toLowerCase().includes(searchTerm)
+        (product.code && product.code.toLowerCase().includes(searchTerm))
     );
     renderInventory(filtered);
 }
