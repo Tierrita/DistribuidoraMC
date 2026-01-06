@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes - Distribuidora MC</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-drumstick-bite"></i>
+                <h2>Distribuidora MC</h2>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="inventario.html">Inventario</a></li>
+                <li><a href="pedidos.html">Pedidos</a></li>
+                <li><a href="clientes.html" class="active">Clientes</a></li>
+                <li><a href="ventas.html">Ventas</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1><i class="fas fa-users"></i> Gestión de Clientes</h1>
+            <p>Base de datos de clientes y contactos</p>
+        </div>
+    </section>
+
+    <!-- Clientes Content -->
+    <section class="clientes">
+        <div class="container">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon clients">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Total Clientes</h4>
+                        <p class="stat-number" id="totalClients">0</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orders">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h4>Clientes con Deuda</h4>
+                        <p class="stat-number" id="clientsWithDebt">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Clientes -->
+            <div class="clientes-table-container">
+                <div class="table-header">
+                    <h2>Lista de Clientes</h2>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="clientSearchInput" placeholder="Buscar cliente...">
+                        </div>
+                        <button class="btn btn-primary" id="addClientBtn">
+                            <i class="fas fa-user-plus"></i> Agregar Cliente
+                        </button>
+                    </div>
+                </div>
+                
+                <table class="inventory-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                            <th>Email</th>
+                            <th>Total Pedidos</th>
+                            <th>Total Gastado</th>
+                            <th>Deuda</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clientsTableBody">
+                        <!-- Los clientes se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+
+                <!-- Empty State -->
+                <div id="emptyClientsState" class="empty-state" style="display: none;">
+                    <i class="fas fa-user-slash"></i>
+                    <h3>No hay clientes registrados</h3>
+                    <p>Agrega tu primer cliente usando el botón de arriba</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Agregar/Editar Cliente -->
+    <div id="clientModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-user-plus"></i> Agregar Cliente</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="clientForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="clientId">ID Cliente</label>
+                        <input type="text" id="clientId" class="form-control" readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientName">Nombre Completo *</label>
+                        <input type="text" id="clientName" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientPhone">Teléfono *</label>
+                        <input type="tel" id="clientPhone" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientAddress">Dirección</label>
+                        <input type="text" id="clientAddress" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientEmail">Email</label>
+                        <input type="email" id="clientEmail" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clientDebt">Deuda Actual</label>
+                        <input type="number" id="clientDebt" class="form-control" min="0" step="0.01" value="0">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="clientNotes">Notas</label>
+                    <textarea id="clientNotes" class="form-control" rows="3" placeholder="Observaciones sobre el cliente..."></textarea>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3><i class="fas fa-drumstick-bite"></i> Distribuidora MC</h3>
+                    <p>Tu distribuidor de confianza en fiambres y embutidos de calidad.</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Enlaces Rápidos</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="inventario.html">Inventario</a></li>
+                        <li><a href="pedidos.html">Pedidos</a></li>
+                        <li><a href="clientes.html">Clientes</a></li>
+                        <li><a href="ventas.html">Ventas</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Distribuidora de Fiambres MC. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-config.js"></script>
+    <script src="script.js"></script>
+    <script>
+        // Variables globales
+        let clients = [];
+        let editingClientId = null;
+
+        // Cargar clientes al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadClients();
+            initializeEventListeners();
+        });
+
+        // Inicializar event listeners
+        function initializeEventListeners() {
+            document.getElementById('addClientBtn').addEventListener('click', openAddClientModal);
+            document.getElementById('cancelBtn').addEventListener('click', closeModal);
+            document.querySelector('.close').addEventListener('click', closeModal);
+            document.getElementById('clientForm').addEventListener('submit', handleClientSubmit);
+            document.getElementById('clientSearchInput').addEventListener('input', handleSearch);
+            
+            // Cerrar modal al hacer click fuera
+            window.addEventListener('click', (e) => {
+                const modal = document.getElementById('clientModal');
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        // Cargar clientes desde Supabase
+        async function loadClients() {
+            try {
+                // Intentar cargar desde Supabase
+                clients = await window.supabaseDB.getClientes();
+                
+                // Guardar en localStorage como backup
+                localStorage.setItem('distributoraMC_clients', JSON.stringify(clients));
+                
+                console.log('✅ Clientes cargados desde Supabase:', clients.length);
+            } catch (error) {
+                console.warn('⚠️ Error al cargar desde Supabase, usando localStorage:', error);
+                // Fallback a localStorage
+                clients = JSON.parse(localStorage.getItem('distributoraMC_clients') || '[]');
+            }
+            
+            const orders = JSON.parse(localStorage.getItem('distributoraMC_orders') || '[]');
+            
+            // Calcular totales de pedidos para cada cliente
+            clients.forEach(client => {
+                const clientOrders = orders.filter(order => 
+                    order.customer?.phone === client.phone || 
+                    order.customer?.name === client.name
+                );
+                client.totalOrders = clientOrders.length;
+                client.totalSpent = clientOrders.reduce((sum, order) => sum + (order.total || 0), 0);
+            });
+            
+            renderClients();
+            updateStats();
+        }
+
+        // Renderizar tabla de clientes
+        function renderClients() {
+            const clientsTableBody = document.getElementById('clientsTableBody');
+            const emptyClientsState = document.getElementById('emptyClientsState');
+            
+            if (clients.length === 0) {
+                clientsTableBody.innerHTML = '';
+                emptyClientsState.style.display = 'flex';
+                return;
+            }
+            
+            emptyClientsState.style.display = 'none';
+            
+            clientsTableBody.innerHTML = clients
+                .sort((a, b) => b.totalOrders - a.totalOrders)
+                .map(client => {
+                    const debtBadge = client.debt > 0 
+                        ? `<span class="status-badge status-pending">$${client.debt.toLocaleString('es-AR')}</span>`
+                        : `<span class="status-badge status-completed">Sin deuda</span>`;
+                    
+                    return `
+                        <tr>
+                            <td><strong>#${client.id}</strong></td>
+                            <td><strong>${client.name}</strong></td>
+                            <td>${client.phone}</td>
+                            <td>${client.address || '-'}</td>
+                            <td>${client.email || '-'}</td>
+                            <td><strong>${client.totalOrders || 0}</strong> pedidos</td>
+                            <td><strong>$${(client.totalSpent || 0).toLocaleString('es-AR')}</strong></td>
+                            <td>${debtBadge}</td>
+                            <td>
+                                <button class="btn-action btn-edit" onclick="editClient('${client.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-action btn-delete" onclick="deleteClient('${client.id}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            document.getElementById('totalClients').textContent = clients.length;
+            const clientsWithDebt = clients.filter(c => c.debt > 0).length;
+            document.getElementById('clientsWithDebt').textContent = clientsWithDebt;
+        }
+
+        // Generar ID automático
+        function generateClientId() {
+            const maxId = clients.reduce((max, client) => {
+                const num = parseInt(client.id.replace('CLI', ''));
+                return num > max ? num : max;
+            }, 0);
+            return `CLI${String(maxId + 1).padStart(4, '0')}`;
+        }
+
+        // Abrir modal para agregar cliente
+        function openAddClientModal() {
+            editingClientId = null;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-user-plus"></i> Agregar Cliente';
+            document.getElementById('clientForm').reset();
+            document.getElementById('clientId').value = generateClientId();
+            document.getElementById('clientDebt').value = '0';
+            document.getElementById('clientModal').style.display = 'flex';
+        }
+
+        // Editar cliente
+        function editClient(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+            
+            editingClientId = clientId;
+            document.getElementById('modalTitle').innerHTML = '<i class="fas fa-edit"></i> Editar Cliente';
+            document.getElementById('clientId').value = client.id;
+            document.getElementById('clientName').value = client.name;
+            document.getElementById('clientPhone').value = client.phone;
+            document.getElementById('clientAddress').value = client.address || '';
+            document.getElementById('clientEmail').value = client.email || '';
+            document.getElementById('clientDebt').value = client.debt || 0;
+            document.getElementById('clientNotes').value = client.notes || '';
+            document.getElementById('clientModal').style.display = 'flex';
+        }
+
+        // Eliminar cliente
+        async function deleteClient(clientId) {
+            if (!confirm('¿Estás seguro de eliminar este cliente?')) return;
+            
+            try {
+                await window.supabaseDB.deleteCliente(clientId);
+                console.log('✅ Cliente eliminado de Supabase');
+                await loadClients();
+            } catch (error) {
+                console.error('❌ Error al eliminar cliente:', error);
+                alert('Error al eliminar el cliente. Por favor intenta nuevamente.');
+            }
+        }
+
+        // Guardar cliente
+        async function handleClientSubmit(e) {
+            e.preventDefault();
+            
+            const clientData = {
+                id: document.getElementById('clientId').value,
+                name: document.getElementById('clientName').value,
+                phone: document.getElementById('clientPhone').value,
+                address: document.getElementById('clientAddress').value,
+                email: document.getElementById('clientEmail').value,
+                debt: parseFloat(document.getElementById('clientDebt').value) || 0,
+                notes: document.getElementById('clientNotes').value
+            };
+            
+            try {
+                if (editingClientId) {
+                    // Actualizar cliente existente
+                    await window.supabaseDB.updateCliente(editingClientId, clientData);
+                    console.log('✅ Cliente actualizado en Supabase');
+                } else {
+                    // Agregar nuevo cliente
+                    await window.supabaseDB.addCliente(clientData);
+                    console.log('✅ Cliente guardado en Supabase');
+                }
+                
+                closeModal();
+                await loadClients();
+            } catch (error) {
+                console.error('❌ Error al guardar cliente:', error);
+                alert('Error al guardar el cliente. Por favor intenta nuevamente.');
+            }
+        }
+
+        // Cerrar modal
+        function closeModal() {
+            document.getElementById('clientModal').style.display = 'none';
+            document.getElementById('clientForm').reset();
+            editingClientId = null;
+        }
+
+        // Búsqueda
+        function handleSearch(e) {
+            const search = e.target.value.toLowerCase();
+            const rows = document.getElementById('clientsTableBody').querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(search) ? '' : 'none';
+            });
+        }
+    </script>
+</body>
+</html>

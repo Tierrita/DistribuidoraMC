@@ -50,9 +50,9 @@
     
     /* Bordes */
     --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
-    --radius-xl: 24px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 20px;
     --radius-full: 9999px;
     
     /* Transiciones */
@@ -251,7 +251,7 @@ html {
 
 .btn {
     padding: 0.8rem 2rem;
-    border-radius: 50px;
+    border-radius: 8px;
     text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
@@ -1108,7 +1108,7 @@ html {
     width: 38px;
     height: 38px;
     border: none;
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -1136,6 +1136,21 @@ html {
 .btn-icon:active::before {
     width: 100px;
     height: 100px;
+}
+
+/* Botones de acción en tablas */
+.btn-action {
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-edit {
@@ -1211,12 +1226,12 @@ html {
     background-color: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(8px);
     animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal.active {
     display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .modal-content {
