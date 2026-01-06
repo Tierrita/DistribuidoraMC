@@ -3612,12 +3612,12 @@ body {
 
 .client-search-results {
     position: absolute;
-    top: 100%;
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
     background: white;
     border: none;
-    border-radius: 0 0 16px 16px;
+    border-radius: 16px;
     max-height: 400px;
     overflow-y: auto;
     overflow-x: hidden;
@@ -3679,6 +3679,10 @@ body {
 .client-result-item:last-child {
     border-bottom: none;
     border-radius: 0 0 16px 16px;
+}
+
+.client-result-item:first-child {
+    border-radius: 16px 16px 0 0;
 }
 
 .client-result-name {
