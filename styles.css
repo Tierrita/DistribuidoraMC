@@ -825,6 +825,38 @@ html {
     box-shadow: var(--shadow-lg);
 }
 
+/* Select Filter */
+.filter-select {
+    padding: 0.75rem 2.5rem 0.75rem 1.2rem;
+    border: 2px solid var(--gray-200);
+    background-color: var(--white);
+    color: var(--text-dark);
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+    font-size: 0.95rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B7280' d='M10.293 3.293L6 7.586 1.707 3.293A1 1 0 00.293 4.707l5 5a1 1 0 001.414 0l5-5a1 1 0 10-1.414-1.414z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    min-width: 200px;
+}
+
+.filter-select:hover {
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px var(--primary-light), var(--shadow-md);
+}
+
 .btn-add-product {
     padding: 0.8rem 1.5rem;
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
