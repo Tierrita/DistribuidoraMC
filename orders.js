@@ -1498,7 +1498,6 @@ function getOrderStatusInfo(status) {
     };
     return statusMap[status] || statusMap.pendiente;
 }
-}
 
 // ============================================
 // ACCIONES DEL HISTORIAL
