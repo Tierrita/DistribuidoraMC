@@ -1194,20 +1194,6 @@ async function handleCheckoutSubmit(e) {
     // Actualizar historial
     renderOrdersHistory();
 }
-    
-    // Limpiar carrito
-    cart = [];
-    saveCartToStorage();
-    updateCartBadge();
-    
-    // Cerrar checkout y mostrar confirmación
-    closeCheckoutModal();
-    checkoutForm.reset();
-    openConfirmationModal(orderData.orderNumber);
-    
-    console.log('Pedido confirmado:', orderData);
-    showNotification('Stock actualizado correctamente', 'success');
-}
 
 function generateOrderNumber() {
     // Obtener el último número de venta
