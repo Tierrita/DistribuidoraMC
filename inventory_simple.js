@@ -13,6 +13,7 @@ const modalTitle = document.getElementById('modalTitle');
 const emptyState = document.getElementById('emptyState');
 const searchInput = document.getElementById('searchInput');
 const filterBrand = document.getElementById('filterBrand');
+const btnClearFilters = document.getElementById('btnClearFilters');
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('Iniciando aplicación...');
@@ -65,6 +66,9 @@ function initializeEventListeners() {
     }
     if (filterBrand) {
         filterBrand.addEventListener('change', handleFilter);
+    }
+    if (btnClearFilters) {
+        btnClearFilters.addEventListener('click', clearFilters);
     }
 }
 
