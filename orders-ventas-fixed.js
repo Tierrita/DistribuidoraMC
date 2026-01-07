@@ -3,6 +3,17 @@
 // Versión mejorada con Supabase
 // ============================================
 
+// ============================================
+// FUNCIÓN SHOWNOTIFICATION - Evitar errores de caché
+// ============================================
+function showNotification(message, type = 'info') {
+    console.log(`📢 [${type}] ${message}`);
+    // Usar alert simple por ahora
+    if (type === 'error') {
+        alert('❌ ' + message);
+    }
+}
+
 // Variables globales
 let cart = [];
 let orders = [];
