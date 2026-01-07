@@ -817,10 +817,9 @@ function openModalForEdit(productId) {
     
     const product = inventory.find(p => p.id === productId);
     if (product) {
-        document.getElementById('productCode').value = product.code;
+        document.getElementById('productCode').value = product.code || '';
         document.getElementById('productName').value = product.name;
         document.getElementById('productCategory').value = product.category;
-        document.getElementById('productCostPrice').value = product.costPrice || 0;
         document.getElementById('productPrice').value = product.price;
         document.getElementById('productStock').value = product.stock;
         document.getElementById('productMinStock').value = product.minStock;
@@ -854,7 +853,6 @@ async function handleProductFormSubmit(e) {
         code: code,
         name: document.getElementById('productName').value.trim(),
         category: document.getElementById('productCategory').value,
-        costPrice: parseFloat(document.getElementById('productCostPrice').value),
         price: parseFloat(document.getElementById('productPrice').value),
         stock: parseInt(document.getElementById('productStock').value),
         minStock: parseInt(document.getElementById('productMinStock').value),
@@ -876,56 +874,42 @@ async function handleProductFormSubmit(e) {
         return;
     }
     
-    // 2. Validar precio de costo mayor a 0
-    if (productData.costPrice <= 0 || isNaN(productData.costPrice)) {
-        alert('El precio de costo debe ser mayor a 0');
-        document.getElementById('productCostPrice').focus();
-        return;
-    }
-    
-    // 3. Validar precio final mayor a 0
+    // 2. Validar precio mayor a 0
     if (productData.price <= 0 || isNaN(productData.price)) {
-        alert('El precio final debe ser mayor a 0');
+        alert('El precio debe ser mayor a 0');
         document.getElementById('productPrice').focus();
         return;
     }
     
-    // 4. Validar precio máximo razonable
+    // 3. Validar precio máximo razonable
     if (productData.price > 9999999) {
         alert('El precio es demasiado alto');
         document.getElementById('productPrice').focus();
         return;
     }
     
-    // 5. Advertir si precio final es menor al precio de costo
-    if (productData.price < productData.costPrice) {
-        if (!confirm('El precio final es menor al precio de costo. ¿Deseas continuar de todos modos?')) {
-            return;
-        }
-    }
-    
-    // 6. Validar stock no negativo
+    // 4. Validar stock no negativo
     if (productData.stock < 0) {
         alert('El stock no puede ser negativo');
         document.getElementById('productStock').focus();
         return;
     }
     
-    // 7. Validar stock mínimo no negativo
+    // 5. Validar stock mínimo no negativo
     if (productData.minStock < 0) {
         alert('El stock mínimo no puede ser negativo');
         document.getElementById('productMinStock').focus();
         return;
     }
     
-    // 8. Validar que stock mínimo sea menor al stock actual (advertencia)
+    // 6. Validar que stock mínimo sea menor al stock actual (advertencia)
     if (productData.minStock > productData.stock && productData.stock > 0) {
         if (!confirm('El stock actual es menor al stock mínimo. ¿Deseas continuar de todos modos?')) {
             return;
         }
     }
     
-    // 9. Validar categoría seleccionada
+    // 7. Validar categoría seleccionada
     if (!productData.category) {
         alert('Debes seleccionar una categoría');
         document.getElementById('productCategory').focus();
@@ -1015,7 +999,6 @@ function renderInventory(productsToRender = inventory) {
         const category = categories.find(c => c.slug === product.category);
         const categoryName = category ? category.name : product.category;
         const categoryIcon = category ? category.icon : 'fa-box';
-        const costPrice = product.costPrice || 0;
         const productCode = product.code || product.id || 'N/A';
         
         return `
@@ -1028,7 +1011,6 @@ function renderInventory(productsToRender = inventory) {
                         ${categoryName}
                     </span>
                 </td>
-                <td class="price">$${costPrice.toFixed(2)}</td>
                 <td class="price">$${product.price.toFixed(2)}</td>
                 <td><strong>${product.stock}</strong> unidades</td>
                 <td>
