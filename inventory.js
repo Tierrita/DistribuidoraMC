@@ -808,6 +808,9 @@ function openModalForAdd() {
     editingProductId = null;
     modalTitle.textContent = 'Agregar Producto';
     productForm.reset();
+    // Habilitar el campo de código para nuevos productos
+    const codeInput = document.getElementById('productCode');
+    if (codeInput) codeInput.disabled = false;
     productModal.classList.add('active');
 }
 
@@ -817,7 +820,10 @@ function openModalForEdit(productId) {
     
     const product = inventory.find(p => p.id === productId);
     if (product) {
-        document.getElementById('productCode').value = product.code || '';
+        const codeInput = document.getElementById('productCode');
+        codeInput.value = product.code || product.id || 'N/A';
+        codeInput.disabled = true; // Deshabilitar código en edición
+        
         document.getElementById('productName').value = product.name;
         document.getElementById('productCategory').value = product.category;
         document.getElementById('productPrice').value = product.price;
@@ -994,7 +1000,14 @@ function renderInventory(productsToRender = inventory) {
     
     emptyState.style.display = 'none';
     
-    productsTableBody.innerHTML = productsToRender.map(product => {
+    // Ordenar productos por código (de menor a mayor)
+    const sortedProducts = [...productsToRender].sort((a, b) => {
+        const codeA = a.code || a.id || 'ZZZZ';
+        const codeB = b.code || b.id || 'ZZZZ';
+        return codeA.toString().localeCompare(codeB.toString(), undefined, { numeric: true });
+    });
+    
+    productsTableBody.innerHTML = sortedProducts.map(product => {
         const stockStatus = getStockStatus(product.stock, product.minStock);
         const category = categories.find(c => c.slug === product.category);
         const categoryName = category ? category.name : product.category;
