@@ -111,6 +111,8 @@ async function addProducto(producto) {
         const productoParaInsertar = {
             code: producto.code,
             name: producto.name,
+            brand: producto.brand || null,
+            weight: producto.weight || null,
             category: producto.category,
             price: producto.price,
             stock: producto.stock,
@@ -122,6 +124,8 @@ async function addProducto(producto) {
         console.log('🔍 DEBUG addProducto - Tipos de datos:', {
             code: typeof productoParaInsertar.code,
             name: typeof productoParaInsertar.name,
+            brand: typeof productoParaInsertar.brand,
+            weight: typeof productoParaInsertar.weight,
             category: typeof productoParaInsertar.category,
             price: typeof productoParaInsertar.price,
             stock: typeof productoParaInsertar.stock,
@@ -154,6 +158,8 @@ async function updateProducto(id, producto) {
         const productoParaActualizar = {
             code: producto.code,
             name: producto.name,
+            brand: producto.brand || null,
+            weight: producto.weight || null,
             category: producto.category,
             price: producto.price,
             stock: producto.stock,
@@ -166,6 +172,8 @@ async function updateProducto(id, producto) {
         console.log('🔍 DEBUG updateProducto - Tipos de datos:', {
             code: typeof productoParaActualizar.code,
             name: typeof productoParaActualizar.name,
+            brand: typeof productoParaActualizar.brand,
+            weight: typeof productoParaActualizar.weight,
             category: typeof productoParaActualizar.category,
             price: typeof productoParaActualizar.price,
             stock: typeof productoParaActualizar.stock,

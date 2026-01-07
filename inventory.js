@@ -296,6 +296,8 @@ async function loadDataFromSupabase() {
             id: prod.id,
             code: prod.code,
             name: prod.name,
+            brand: prod.brand || null,
+            weight: prod.weight || null,
             category: prod.category,
             price: parseFloat(prod.price) || 0,
             stock: prod.stock || 0,
@@ -828,6 +830,8 @@ function openModalForEdit(productId) {
         codeInput.readOnly = true; // Solo lectura para que no se pueda editar
         
         document.getElementById('productName').value = product.name;
+        document.getElementById('productBrand').value = product.brand || '';
+        document.getElementById('productWeight').value = product.weight || '';
         document.getElementById('productCategory').value = product.category;
         document.getElementById('productPrice').value = product.price;
         document.getElementById('productStock').value = product.stock;
@@ -861,6 +865,8 @@ async function handleProductFormSubmit(e) {
     const productData = {
         code: code,
         name: document.getElementById('productName').value.trim(),
+        brand: document.getElementById('productBrand').value.trim() || null,
+        weight: document.getElementById('productWeight').value ? parseFloat(document.getElementById('productWeight').value) : null,
         category: document.getElementById('productCategory').value,
         price: parseFloat(document.getElementById('productPrice').value),
         stock: parseInt(document.getElementById('productStock').value),
@@ -1021,11 +1027,15 @@ function renderInventory(productsToRender = inventory) {
         const categoryName = category ? category.name : product.category;
         const categoryIcon = category ? category.icon : 'fa-box';
         const productCode = product.code || product.id || 'N/A';
+        const brand = product.brand || '-';
+        const weight = product.weight ? `${product.weight} kg` : '-';
         
         return `
             <tr data-id="${product.id}">
                 <td><span class="product-code">${productCode}</span></td>
                 <td><strong>${product.name}</strong></td>
+                <td>${brand}</td>
+                <td>${weight}</td>
                 <td>
                     <span class="category-badge" style="background: ${category?.color}20; color: ${category?.color}">
                         <i class="fas ${categoryIcon}"></i>
