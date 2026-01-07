@@ -5,6 +5,7 @@
 
 -- Eliminar tablas existentes si necesitas recrearlas (¡CUIDADO! Esto borra todos los datos)
 -- DROP TABLE IF EXISTS pedidos CASCADE;
+-- DROP TABLE IF EXISTS clientes CASCADE;
 -- DROP TABLE IF EXISTS productos CASCADE;
 -- DROP TABLE IF EXISTS categorias CASCADE;
 
@@ -50,6 +51,27 @@ CREATE INDEX IF NOT EXISTS idx_productos_category ON productos(category);
 CREATE INDEX IF NOT EXISTS idx_productos_name ON productos(name);
 
 -- ============================================
+-- TABLA: clientes
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS clientes (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    phone TEXT,
+    email TEXT,
+    address TEXT,
+    cuit TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para clientes
+CREATE INDEX IF NOT EXISTS idx_clientes_name ON clientes(name);
+CREATE INDEX IF NOT EXISTS idx_clientes_phone ON clientes(phone);
+CREATE INDEX IF NOT EXISTS idx_clientes_cuit ON clientes(cuit);
+
+-- ============================================
 -- TABLA: pedidos (para implementar después)
 -- ============================================
 
@@ -91,6 +113,7 @@ $$ LANGUAGE plpgsql;
 -- Triggers para actualizar updated_at (eliminar si existen primero)
 DROP TRIGGER IF EXISTS update_categorias_updated_at ON categorias;
 DROP TRIGGER IF EXISTS update_productos_updated_at ON productos;
+DROP TRIGGER IF EXISTS update_clientes_updated_at ON clientes;
 DROP TRIGGER IF EXISTS update_pedidos_updated_at ON pedidos;
 
 CREATE TRIGGER update_categorias_updated_at
@@ -100,6 +123,11 @@ CREATE TRIGGER update_categorias_updated_at
 
 CREATE TRIGGER update_productos_updated_at
     BEFORE UPDATE ON productos
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_clientes_updated_at
+    BEFORE UPDATE ON clientes
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
@@ -115,6 +143,7 @@ CREATE TRIGGER update_pedidos_updated_at
 -- Habilitar Row Level Security
 ALTER TABLE categorias ENABLE ROW LEVEL SECURITY;
 ALTER TABLE productos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE clientes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE pedidos ENABLE ROW LEVEL SECURITY;
 
 -- ============================================
@@ -178,6 +207,36 @@ ON productos FOR DELETE
 USING (true);
 
 -- ============================================
+-- POLÍTICAS PARA CLIENTES
+-- ============================================
+
+-- Eliminar políticas existentes si existen
+DROP POLICY IF EXISTS "Permitir lectura pública de clientes" ON clientes;
+DROP POLICY IF EXISTS "Permitir inserción pública de clientes" ON clientes;
+DROP POLICY IF EXISTS "Permitir actualización pública de clientes" ON clientes;
+DROP POLICY IF EXISTS "Permitir eliminación pública de clientes" ON clientes;
+
+-- Permitir lectura pública
+CREATE POLICY "Permitir lectura pública de clientes" 
+ON clientes FOR SELECT 
+USING (true);
+
+-- Permitir inserción pública
+CREATE POLICY "Permitir inserción pública de clientes" 
+ON clientes FOR INSERT 
+WITH CHECK (true);
+
+-- Permitir actualización pública
+CREATE POLICY "Permitir actualización pública de clientes" 
+ON clientes FOR UPDATE 
+USING (true);
+
+-- Permitir eliminación pública
+CREATE POLICY "Permitir eliminación pública de clientes" 
+ON clientes FOR DELETE 
+USING (true);
+
+-- ============================================
 -- POLÍTICAS PARA PEDIDOS
 -- ============================================
 
@@ -230,6 +289,15 @@ INSERT INTO productos (code, name, category, price, stock, unit, min_stock) VALU
 ('EMB001', 'Salame Milano', 'embutidos', 1800.00, 8, 'kg', 15),
 ('CAR001', 'Pavita Natural', 'carnes', 1500.00, 5, 'kg', 20)
 ON CONFLICT (code) DO NOTHING;
+
+-- Insertar clientes de ejemplo
+INSERT INTO clientes (name, phone, address, cuit, notes) VALUES
+('Juan Pérez', '011 4567-8900', 'Av. Corrientes 1234, CABA', '20-12345678-9', 'Cliente frecuente - Pedidos semanales'),
+('María González', '011 4321-5678', 'Av. Rivadavia 5678, CABA', '27-98765432-1', 'Descuento 10% mayorista'),
+('Restaurante El Buen Sabor', '011 5555-1234', 'San Martín 890, San Isidro', '30-11223344-5', 'Pedidos grandes - Entrega martes y viernes'),
+('Panadería La Esquina', '011 4444-9876', 'Libertador 456, Vicente López', '30-55667788-9', 'Pedidos matutinos'),
+('Carlos Rodríguez', '011 6789-0123', 'Belgrano 789, CABA', '20-33445566-7', NULL)
+ON CONFLICT DO NOTHING;
 
 -- ============================================
 -- VERIFICACIÓN

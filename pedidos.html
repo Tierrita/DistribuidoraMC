@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- SheetJS para exportar Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
@@ -57,41 +59,76 @@
             <!-- TAB: NUEVO PEDIDO -->
             <div id="tabNuevoPedido" class="tab-content active">
                 
-                <!-- PASO 1: Datos del Cliente (se muestra primero) -->
+                <!-- PASO 1: Seleccionar o Crear Cliente -->
                 <div id="customerDataSection" class="customer-data-section">
                     <div class="customer-data-card">
-                        <h3><i class="fas fa-user-circle"></i> Datos del Cliente</h3>
-                        <p class="section-description">Ingresa los datos del cliente antes de armar el pedido</p>
+                        <h3><i class="fas fa-user-circle"></i> Seleccionar Cliente</h3>
+                        <p class="section-description">Busca un cliente existente o crea uno nuevo</p>
                         
-                        <form id="customerDataForm" class="customer-form">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="newOrderCustomerName">Nombre y Apellido *</label>
-                                    <input type="text" id="newOrderCustomerName" required placeholder="Juan Pérez" minlength="3" maxlength="100" autofocus>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newOrderCustomerPhone">Teléfono *</label>
-                                    <input type="tel" id="newOrderCustomerPhone" required placeholder="011 4567-8900" pattern="[0-9\s\-\+\(\)]{7,20}">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label for="newOrderCustomerAddress">Dirección de Entrega *</label>
-                                    <input type="text" id="newOrderCustomerAddress" required placeholder="Av. Siempre Viva 123" minlength="5" maxlength="150">
-                                </div>
-                                <div class="form-group">
-                                    <label for="newOrderCustomerEmail">Email (opcional)</label>
-                                    <input type="email" id="newOrderCustomerEmail" placeholder="juan@ejemplo.com" maxlength="100">
-                                </div>
-                                <div class="form-group full-width">
-                                    <label for="newOrderNotes">Notas del Pedido (opcional)</label>
-                                    <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales..." maxlength="500"></textarea>
-                                </div>
+                        <!-- Buscador de Clientes -->
+                        <div class="customer-search-section">
+                            <div class="search-box-large">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="customerSearchInput" placeholder="Buscar por nombre, teléfono, CUIT..." autofocus>
                             </div>
-                            <div class="form-actions">
-                                <button type="submit" class="btn btn-primary btn-large">
-                                    <i class="fas fa-arrow-right"></i> Continuar al Pedido
+                            
+                            <!-- Lista de Clientes -->
+                            <div id="customerSearchResults" class="customer-results">
+                                <!-- Los resultados se cargarán aquí -->
+                            </div>
+                            
+                            <div class="divider-or">
+                                <span>O</span>
+                            </div>
+                            
+                            <button type="button" class="btn btn-outline" id="btnNewCustomer">
+                                <i class="fas fa-user-plus"></i> Crear Cliente Nuevo
+                            </button>
+                        </div>
+                        
+                        <!-- Formulario Cliente Nuevo (oculto inicialmente) -->
+                        <div id="newCustomerForm" class="new-customer-form" style="display: none;">
+                            <div class="form-header">
+                                <h4><i class="fas fa-user-plus"></i> Nuevo Cliente</h4>
+                                <button type="button" class="btn-text" id="btnCancelNewCustomer">
+                                    <i class="fas fa-arrow-left"></i> Volver a búsqueda
                                 </button>
                             </div>
-                        </form>
+                            <form id="customerDataForm" class="customer-form">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="newOrderCustomerName">Nombre y Apellido *</label>
+                                        <input type="text" id="newOrderCustomerName" required placeholder="Juan Pérez" minlength="3" maxlength="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newOrderCustomerPhone">Teléfono *</label>
+                                        <input type="tel" id="newOrderCustomerPhone" required placeholder="011 4567-8900" pattern="[0-9\s\-\+\(\)]{7,20}">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="newOrderCustomerAddress">Dirección de Entrega *</label>
+                                        <input type="text" id="newOrderCustomerAddress" required placeholder="Av. Siempre Viva 123" minlength="5" maxlength="150">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newOrderCustomerEmail">Email (opcional)</label>
+                                        <input type="email" id="newOrderCustomerEmail" placeholder="juan@ejemplo.com" maxlength="100">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newOrderCustomerCuit">CUIT (opcional)</label>
+                                        <input type="text" id="newOrderCustomerCuit" placeholder="20-12345678-9" maxlength="15">
+                                    </div>
+                                    <div class="form-group full-width">
+                                        <label for="newOrderNotes">Notas (opcional)</label>
+                                        <textarea id="newOrderNotes" rows="2" placeholder="Comentarios adicionales..." maxlength="500"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-cancel" id="btnCancelCustomerForm">Cancelar</button>
+                                    <button type="submit" class="btn btn-primary btn-large">
+                                        <i class="fas fa-arrow-right"></i> Continuar al Pedido
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
@@ -428,7 +465,6 @@
     </footer>
 
     <script src="supabase-config.js"></script>
-    <script src="clientes.js"></script>
     <script src="orders-ventas-fixed.js"></script>
 </body>
 </html>
