@@ -360,8 +360,10 @@ window.editCustomerData = function() {
 
 function renderProductsForOrders(productsToRender = null) {
     const products = productsToRender || (window.inventory || []);
+    console.log('🎨 Renderizando productos para pedidos:', products.length);
     
     if (products.length === 0) {
+        console.warn('⚠️ No hay productos para mostrar');
         productsOrderGrid.innerHTML = '';
         emptyOrderState.style.display = 'flex';
         return;
@@ -374,7 +376,7 @@ function renderProductsForOrders(productsToRender = null) {
         const isAvailable = product.stock > 0;
         
         // Verificar si ya está en el carrito
-        const cartItem = cart.find(item => item.productId === product.id);
+        const cartItem = cart.find(item => item.id === product.id);
         const inCart = !!cartItem;
         const totalKg = cartItem ? cartItem.weight : 0;
         
