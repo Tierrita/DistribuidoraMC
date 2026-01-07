@@ -430,8 +430,14 @@ function getCategoryIcon(category) {
 // ============================================
 
 window.openAddProductModal = function(productId) {
+    console.log('🔵 Click en agregar producto, ID:', productId);
+    console.log('📦 Inventario disponible:', window.inventory ? window.inventory.length : 'No definido');
     const product = window.inventory.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+        console.error('❌ Producto no encontrado:', productId);
+        return;
+    }
+    console.log('✅ Producto encontrado:', product);
     
     selectedProduct = product;
     
