@@ -1021,9 +1021,6 @@ function renderInventory(productsToRender = inventory) {
                 </td>
                 <td>
                     <div class="action-buttons">
-                        <button class="btn-icon btn-success" onclick="quickAddToOrder(${product.id})" title="Agregar al pedido" ${product.stock === 0 ? 'disabled' : ''}>
-                            <i class="fas fa-cart-plus"></i>
-                        </button>
                         <button class="btn-icon btn-edit" onclick="openModalForEdit(${product.id})" title="Editar">
                             <i class="fas fa-edit"></i>
                         </button>
