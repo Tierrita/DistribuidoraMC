@@ -810,7 +810,10 @@ function openModalForAdd() {
     productForm.reset();
     // Habilitar el campo de código para nuevos productos
     const codeInput = document.getElementById('productCode');
-    if (codeInput) codeInput.disabled = false;
+    if (codeInput) {
+        codeInput.disabled = false;
+        codeInput.readOnly = false;
+    }
     productModal.classList.add('active');
 }
 
@@ -822,7 +825,8 @@ function openModalForEdit(productId) {
     if (product) {
         const codeInput = document.getElementById('productCode');
         codeInput.value = product.code || product.id || 'N/A';
-        codeInput.disabled = true; // Deshabilitar código en edición
+        codeInput.disabled = false; // No deshabilitar para que se envíe el valor
+        codeInput.readOnly = true; // Solo lectura para que no se pueda editar
         
         document.getElementById('productName').value = product.name;
         document.getElementById('productCategory').value = product.category;
