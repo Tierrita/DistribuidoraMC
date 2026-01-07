@@ -927,10 +927,15 @@ async function handleProductFormSubmit(e) {
     
     // ===== FIN VALIDACIONES =====
     
+    console.log('🔍 DEBUG handleProductFormSubmit - editingProductId:', editingProductId);
+    console.log('🔍 DEBUG handleProductFormSubmit - productData:', productData);
+    console.log('🔍 DEBUG handleProductFormSubmit - useSupabase:', useSupabase);
+    
     try {
         if (editingProductId) {
             // Editar producto existente
             if (useSupabase) {
+                console.log('🔍 DEBUG - Llamando a updateProducto con ID:', editingProductId);
                 await window.supabaseDB.updateProducto(editingProductId, productData);
                 await loadDataFromSupabase();
             } else {
