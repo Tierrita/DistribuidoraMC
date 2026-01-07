@@ -353,6 +353,46 @@
         </div>
     </div>
 
+    <!-- Modal Agregar Producto con Peso -->
+    <div id="addProductModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2 id="addProductModalTitle"><i class="fas fa-balance-scale"></i> Agregar Producto</h2>
+                <button class="modal-close" id="addProductModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="product-preview">
+                    <h3 id="modalProductName"></h3>
+                    <p><strong>Marca:</strong> <span id="modalProductBrand"></span></p>
+                    <p><strong>Precio x KG:</strong> <span id="modalProductPrice"></span></p>
+                    <p class="text-muted">Peso sugerido: <span id="modalProductWeight"></span></p>
+                </div>
+                <form id="addProductForm">
+                    <div class="form-group">
+                        <label for="productWeightInput">Peso a pedir (kg) *</label>
+                        <input type="number" id="productWeightInput" step="0.001" min="0.001" required 
+                               placeholder="Ej: 2.5" autofocus>
+                        <small class="form-help">Ingresá el peso en kilogramos</small>
+                    </div>
+                    <div class="price-preview">
+                        <div class="price-row">
+                            <span>Subtotal:</span>
+                            <strong id="modalSubtotal">$0.00</strong>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-cancel" id="btnCancelAddProduct">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-cart-plus"></i> Agregar al Pedido
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Botón WhatsApp Flotante -->
     <a href="https://wa.me/5491145678900" class="whatsapp-float" target="_blank">
         <i class="fab fa-whatsapp"></i>
@@ -387,9 +427,8 @@
         </div>
     </footer>
 
-    <script src="sample-data.js"></script>
-    <script src="script.js"></script>
-    <script src="inventory.js"></script>
-    <script src="orders.js"></script>
+    <script src="supabase-config.js"></script>
+    <script src="clientes.js"></script>
+    <script src="orders-ventas-fixed.js"></script>
 </body>
 </html>
