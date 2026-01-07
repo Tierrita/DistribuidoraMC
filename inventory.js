@@ -297,9 +297,8 @@ async function loadDataFromSupabase() {
             code: prod.code,
             name: prod.name,
             category: prod.category,
-            costPrice: parseFloat(prod.cost_price) || 0,
-            price: parseFloat(prod.price),
-            stock: prod.stock,
+            price: parseFloat(prod.price) || 0,
+            stock: prod.stock || 0,
             minStock: prod.min_stock || 0,
             unit: prod.unit || 'kg'
         }));
