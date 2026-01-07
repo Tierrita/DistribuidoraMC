@@ -108,44 +108,22 @@ async function getProductos() {
 
 async function addProducto(producto) {
     try {
-        const productoParaInsertar = {
-            code: producto.code,
-            name: producto.name,
-            brand: producto.brand || null,
-            weight: producto.weight || null,
-            category: producto.category,
-            price: producto.price,
-            stock: producto.stock,
-            unit: producto.unit,
-            min_stock: producto.minStock || 0
-        };
-        
-        console.log('🔍 DEBUG addProducto - Objeto a insertar:', productoParaInsertar);
-        console.log('🔍 DEBUG addProducto - Tipos de datos:', {
-            code: typeof productoParaInsertar.code,
-            name: typeof productoParaInsertar.name,
-            brand: typeof productoParaInsertar.brand,
-            weight: typeof productoParaInsertar.weight,
-            category: typeof productoParaInsertar.category,
-            price: typeof productoParaInsertar.price,
-            stock: typeof productoParaInsertar.stock,
-            unit: typeof productoParaInsertar.unit,
-            min_stock: typeof productoParaInsertar.min_stock
-        });
-        
         const { data, error } = await supabaseClient
             .from('productos')
-            .insert([productoParaInsertar])
+            .insert([{
+                code: producto.code,
+                name: producto.name,
+                brand: producto.brand || null,
+                weight: producto.weight || null,
+                category: producto.category,
+                price: producto.price,
+                stock: producto.stock,
+                unit: producto.unit,
+                min_stock: producto.minStock || 0
+            }])
             .select();
         
-        if (error) {
-            console.error('❌ ERROR COMPLETO DE SUPABASE (INSERT):', error);
-            console.error('❌ Error message:', error.message);
-            console.error('❌ Error details:', error.details);
-            console.error('❌ Error hint:', error.hint);
-            console.error('❌ Error code:', error.code);
-            throw error;
-        }
+        if (error) throw error;
         return data[0];
     } catch (error) {
         console.error('Error al agregar producto:', error);
@@ -155,46 +133,23 @@ async function addProducto(producto) {
 
 async function updateProducto(id, producto) {
     try {
-        const productoParaActualizar = {
-            code: producto.code,
-            name: producto.name,
-            brand: producto.brand || null,
-            weight: producto.weight || null,
-            category: producto.category,
-            price: producto.price,
-            stock: producto.stock,
-            unit: producto.unit,
-            min_stock: producto.minStock || 0
-        };
-        
-        console.log('🔍 DEBUG updateProducto - ID del producto:', id, 'Tipo:', typeof id);
-        console.log('🔍 DEBUG updateProducto - Objeto a actualizar:', productoParaActualizar);
-        console.log('🔍 DEBUG updateProducto - Tipos de datos:', {
-            code: typeof productoParaActualizar.code,
-            name: typeof productoParaActualizar.name,
-            brand: typeof productoParaActualizar.brand,
-            weight: typeof productoParaActualizar.weight,
-            category: typeof productoParaActualizar.category,
-            price: typeof productoParaActualizar.price,
-            stock: typeof productoParaActualizar.stock,
-            unit: typeof productoParaActualizar.unit,
-            min_stock: typeof productoParaActualizar.min_stock
-        });
-        
         const { data, error } = await supabaseClient
             .from('productos')
-            .update(productoParaActualizar)
+            .update({
+                code: producto.code,
+                name: producto.name,
+                brand: producto.brand || null,
+                weight: producto.weight || null,
+                category: producto.category,
+                price: producto.price,
+                stock: producto.stock,
+                unit: producto.unit,
+                min_stock: producto.minStock || 0
+            })
             .eq('id', id)
             .select();
         
-        if (error) {
-            console.error('❌ ERROR COMPLETO DE SUPABASE (UPDATE):', error);
-            console.error('❌ Error message:', error.message);
-            console.error('❌ Error details:', error.details);
-            console.error('❌ Error hint:', error.hint);
-            console.error('❌ Error code:', error.code);
-            throw error;
-        }
+        if (error) throw error;
         return data[0];
     } catch (error) {
         console.error('Error al actualizar producto:', error);
