@@ -838,10 +838,17 @@ function closeProductModal() {
 async function handleProductFormSubmit(e) {
     e.preventDefault();
     
-    // Auto-generar código para productos nuevos
-    const code = editingProductId ? 
-        inventory.find(p => p.id === editingProductId)?.code : 
-        await generateProductCode();
+    // Auto-generar o mantener código
+    let code;
+    if (editingProductId) {
+        // Si estamos editando, obtener el código existente o usar el valor del input
+        const existingProduct = inventory.find(p => p.id === editingProductId);
+        const inputCode = document.getElementById('productCode').value.trim();
+        code = inputCode || existingProduct?.code || await generateProductCode();
+    } else {
+        // Si es nuevo, generar código automático
+        code = await generateProductCode();
+    }
     
     const productData = {
         code: code,
