@@ -1,3 +1,66 @@
+<script>
+// Validación estricta de formulario de productos con toast
+document.getElementById('productForm').addEventListener('submit', function(e) {
+    const nameInput = document.getElementById('productName');
+    const codeInput = document.getElementById('productCode');
+    const brandInput = document.getElementById('productBrand');
+    const weightInput = document.getElementById('productWeight');
+    const priceInput = document.getElementById('productPrice');
+    const stockInput = document.getElementById('productStock');
+    const minStockInput = document.getElementById('productMinStock');
+    const name = nameInput.value.trim();
+    const code = codeInput.value.trim();
+    if (!name || name.length < 3) {
+        window.showToast('El nombre del producto no puede estar vacío ni tener menos de 3 caracteres.', 'error');
+        nameInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (!code || code.length < 3) {
+        window.showToast('El código no puede estar vacío ni tener menos de 3 caracteres.', 'error');
+        codeInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    // Validar duplicados (ejemplo simple, depende de cómo se manejen en JS)
+    if (window.products && window.products.some(prod => prod.code.toLowerCase() === code.toLowerCase())) {
+        window.showToast('Ya existe un producto con ese código.', 'error');
+        codeInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (brandInput.value.trim().length < 2) {
+        window.showToast('La marca debe tener al menos 2 caracteres.', 'error');
+        brandInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (isNaN(weightInput.value) || Number(weightInput.value) <= 0) {
+        window.showToast('El peso debe ser un número mayor a 0.', 'error');
+        weightInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (isNaN(priceInput.value) || Number(priceInput.value) <= 0) {
+        window.showToast('El precio debe ser un número mayor a 0.', 'error');
+        priceInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (isNaN(stockInput.value) || Number(stockInput.value) < 0) {
+        window.showToast('El stock debe ser un número igual o mayor a 0.', 'error');
+        stockInput.focus();
+        e.preventDefault();
+        return false;
+    }
+    if (isNaN(minStockInput.value) || Number(minStockInput.value) < 0) {
+        window.showToast('El stock mínimo debe ser un número igual o mayor a 0.', 'error');
+        minStockInput.focus();
+        e.preventDefault();
+        return false;
+    }
+});
+</script>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -12,6 +75,54 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+        <!-- Notificación flotante -->
+        <div id="toastNotification" style="display:none;position:fixed;top:24px;right:24px;z-index:9999;min-width:220px;max-width:350px;padding:1rem 1.5rem;border-radius:12px;background:linear-gradient(90deg,#dc2626 60%,#f59e0b 100%);color:#fff;font-weight:600;box-shadow:0 4px 24px 0 rgba(220,38,38,0.18);font-size:1.08rem;transition:opacity 0.3s;"><span id="toastMessage">Mensaje</span></div>
+                <span id="toastMessage">Mensaje</span>
+                <style>
+                @media (max-width: 600px) {
+                    #toastNotification {
+                        top: 12px !important;
+                        right: 12px !important;
+                        min-width: 160px !important;
+                        max-width: 90vw !important;
+                        font-size: 0.98rem !important;
+                        padding: 0.7rem 1rem !important;
+                    }
+                }
+                #toastNotification {
+                    animation: toastPop 0.4s cubic-bezier(.68,-0.55,.27,1.55);
+                }
+                @keyframes toastPop {
+                    0% { transform: scale(0.8) translateY(-20px); opacity: 0; }
+                    60% { transform: scale(1.05) translateY(2px); opacity: 1; }
+                    100% { transform: scale(1) translateY(0); opacity: 1; }
+                }
+                </style>
+        <script>
+        // Sistema de notificación visual (toast)
+        window.showToast = function(message, type = 'info', duration = 3200) {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMessage');
+            if (!toast || !toastMsg) return;
+            toastMsg.textContent = message;
+            toast.style.display = 'block';
+            toast.style.opacity = '1';
+            toast.style.background = type === 'error'
+                ? 'linear-gradient(90deg,#dc2626 60%,#f59e0b 100%)'
+                : type === 'success'
+                ? 'linear-gradient(90deg,#059669 60%,#38bdf8 100%)'
+                : type === 'warning'
+                ? 'linear-gradient(90deg,#f59e0b 60%,#fbbf24 100%)'
+                : 'linear-gradient(90deg,#2563eb 60%,#38bdf8 100%)';
+            toast.style.color = '#fff';
+            toast.style.fontWeight = '600';
+            clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => { toast.style.display = 'none'; }, 400);
+            }, duration);
+        };
+        </script>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
@@ -20,10 +131,11 @@
                 <h2>Distribuidora MC</h2>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="inventario.html" class="active">Inventario</a></li>
-                <li><a href="clientes.html">Clientes</a></li>
-                <li><a href="pedidos.html">Ventas</a></li>
+                <li><a href="index.html"><i class="fa-solid fa-house"></i> Home</a></li>
+                <li><a href="inventario.html" class="active"><i class="fa-solid fa-boxes-stacked"></i> Inventario</a></li>
+                <li><a href="clientes.html"><i class="fa-solid fa-users"></i> Clientes</a></li>
+                <li><a href="pedidos.html"><i class="fa-solid fa-cart-shopping"></i> Ventas</a></li>
+                <li><a href="categorias.html"><i class="fa-solid fa-tags"></i> Categorías</a></li>
             </ul>
         </div>
     </nav>
@@ -39,18 +151,6 @@
     <!-- Inventario -->
     <section class="inventory">
         <div class="container">
-            <!-- Categorías -->
-            <div class="categories-section" id="categoriesSection">
-                <div class="categories-header">
-                    <h2><i class="fas fa-tags"></i> Categorías</h2>
-                    <button class="btn-add-category" id="btnAddCategory">
-                        <i class="fas fa-plus"></i> Nueva Categoría
-                    </button>
-                </div>
-                <div class="categories-grid" id="categoriesGrid">
-                    <!-- Categorías aquí -->
-                </div>
-            </div>
 
             <!-- Productos -->
             <div class="products-section">
@@ -126,7 +226,7 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-cancel" id="categoryCancelBtn">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary btn-futurista">
                         <i class="fas fa-save"></i> Guardar
                     </button>
                 </div>
@@ -189,7 +289,7 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-cancel" id="btnCancel">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-primary btn-futurista">
                         <i class="fas fa-save"></i> Guardar
                     </button>
                 </div>

@@ -224,9 +224,16 @@ function editClient(id) {
 function confirmDeleteClient(id) {
     const client = clients.find(c => c.id === id);
     if (!client) return;
-    
-    if (confirm(`¿Estás seguro de eliminar el cliente "${client.name}"?`)) {
+    // Confirmación doble visual con toast
+    window.showToast(`¿Estás seguro de eliminar el cliente "${client.name}"? Esta acción no se puede deshacer. Haz clic de nuevo para confirmar.`, 'warning');
+    if (!window._deleteClientConfirm) window._deleteClientConfirm = {};
+    if (window._deleteClientConfirm[id]) {
+        window.showToast('Eliminando cliente...', 'info');
         deleteClient(id);
+        window._deleteClientConfirm[id] = false;
+    } else {
+        window._deleteClientConfirm[id] = true;
+        setTimeout(() => { window._deleteClientConfirm[id] = false; }, 4000);
     }
 }
 

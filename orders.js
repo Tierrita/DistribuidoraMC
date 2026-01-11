@@ -1549,12 +1549,14 @@ function deleteOrder(orderId) {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
     
-    if (confirm(`¿Estás seguro de eliminar el pedido #${order.orderNumber}?`)) {
-        orders = orders.filter(o => o.id !== orderId);
-        saveOrdersToStorage();
-        renderOrdersHistory();
-        showNotification('Pedido eliminado correctamente', 'success');
-    }
+        if (confirm(`¿Estás seguro de eliminar el pedido #${order.orderNumber}? Esta acción no se puede deshacer.`)) {
+            if (confirm('¿Realmente quieres eliminar este pedido? Esta acción es permanente.')) {
+                orders = orders.filter(o => o.id !== orderId);
+                saveOrdersToStorage();
+                renderOrdersHistory();
+                showNotification('Pedido eliminado correctamente', 'success');
+            }
+        }
 }
 
 function viewOrderDetails(orderId) {

@@ -742,7 +742,8 @@ async function deleteCategory(categoryId) {
         return;
     }
     
-    if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"?`)) {
+    if (confirm(`¿Estás seguro de eliminar la categoría "${category.name}"? Esta acción no se puede deshacer.`)) {
+      if (confirm('¿Realmente quieres eliminar esta categoría? Esta acción es permanente.')) {
         try {
             if (useSupabase) {
                 await window.supabaseDB.deleteCategoria(categoryId);
@@ -751,7 +752,6 @@ async function deleteCategory(categoryId) {
                 categories = categories.filter(c => c.id !== categoryId);
                 saveCategoriestoStorage();
             }
-            
             renderCategories();
             loadCategoryFilters();
             loadCategoryOptions();
@@ -760,6 +760,7 @@ async function deleteCategory(categoryId) {
             console.error('Error al eliminar categoría:', error);
             alert('Error al eliminar la categoría');
         }
+      }
     }
 }
 
@@ -878,41 +879,41 @@ async function handleProductFormSubmit(e) {
     
     // 1. Validar nombre no vacío y longitud máxima
     if (productData.name.length === 0) {
-        alert('El nombre del producto no puede estar vacío');
+        window.showToast('El nombre del producto no puede estar vacío', 'error');
         document.getElementById('productName').focus();
         return;
     }
     
     if (productData.name.length > 100) {
-        alert('El nombre del producto es demasiado largo (máximo 100 caracteres)');
+        window.showToast('El nombre del producto es demasiado largo (máximo 100 caracteres)', 'error');
         document.getElementById('productName').focus();
         return;
     }
     
     // 2. Validar precio mayor a 0
     if (productData.price <= 0 || isNaN(productData.price)) {
-        alert('El precio debe ser mayor a 0');
+        window.showToast('El precio debe ser mayor a 0', 'error');
         document.getElementById('productPrice').focus();
         return;
     }
     
     // 3. Validar precio máximo razonable
     if (productData.price > 9999999) {
-        alert('El precio es demasiado alto');
+        window.showToast('El precio es demasiado alto', 'error');
         document.getElementById('productPrice').focus();
         return;
     }
     
     // 4. Validar stock no negativo
     if (productData.stock < 0) {
-        alert('El stock no puede ser negativo');
+        window.showToast('El stock no puede ser negativo', 'error');
         document.getElementById('productStock').focus();
         return;
     }
     
     // 5. Validar stock mínimo no negativo
     if (productData.minStock < 0) {
-        alert('El stock mínimo no puede ser negativo');
+        window.showToast('El stock mínimo no puede ser negativo', 'error');
         document.getElementById('productMinStock').focus();
         return;
     }
@@ -977,7 +978,8 @@ async function deleteProduct(productId) {
     const product = inventory.find(p => p.id === productId);
     if (!product) return;
     
-    if (confirm(`¿Estás seguro de eliminar "${product.name}"?`)) {
+    if (confirm(`¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`)) {
+      if (confirm('¿Realmente quieres eliminar este producto? Esta acción es permanente.')) {
         try {
             if (useSupabase) {
                 await window.supabaseDB.deleteProducto(productId);
@@ -986,7 +988,6 @@ async function deleteProduct(productId) {
                 inventory = inventory.filter(p => p.id !== productId);
                 saveInventoryToStorage();
             }
-            
             renderInventory();
             renderCategories(); // Actualizar contadores
             updateStats();
@@ -995,27 +996,35 @@ async function deleteProduct(productId) {
             console.error('Error al eliminar producto:', error);
             alert('Error al eliminar el producto');
         }
+      }
     }
 }
 
 function renderInventory(productsToRender = inventory) {
     if (!productsTableBody || !emptyState) return; // Protección si los elementos no existen
-    
-    if (productsToRender.length === 0) {
+
+    // FILTRO AUTOMÁTICO: Si la URL contiene ?stock=bajo, filtrar productos con stock bajo
+    const urlParams = new URLSearchParams(window.location.search);
+    let filteredProducts = productsToRender;
+    if (urlParams.get('stock') === 'bajo') {
+        filteredProducts = productsToRender.filter(p => p.stock > 0 && p.stock <= (p.minStock || 10));
+    }
+
+    if (filteredProducts.length === 0) {
         productsTableBody.innerHTML = '';
         emptyState.style.display = 'flex';
         return;
     }
-    
+
     emptyState.style.display = 'none';
-    
+
     // Ordenar productos por código (de menor a mayor)
-    const sortedProducts = [...productsToRender].sort((a, b) => {
+    const sortedProducts = [...filteredProducts].sort((a, b) => {
         const codeA = a.code || a.id || 'ZZZZ';
         const codeB = b.code || b.id || 'ZZZZ';
         return codeA.toString().localeCompare(codeB.toString(), undefined, { numeric: true });
     });
-    
+
     productsTableBody.innerHTML = sortedProducts.map(product => {
         const stockStatus = getStockStatus(product.stock, product.minStock);
         const category = categories.find(c => c.slug === product.category);
@@ -1024,7 +1033,7 @@ function renderInventory(productsToRender = inventory) {
         const productCode = product.code || product.id || 'N/A';
         const brand = product.brand || '-';
         const weight = product.weight ? `${product.weight} kg` : '-';
-        
+
         return `
             <tr data-id="${product.id}">
                 <td><span class="product-code">${productCode}</span></td>

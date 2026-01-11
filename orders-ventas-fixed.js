@@ -1,3 +1,16 @@
+// Doble confirmación para eliminar pedido
+window.deleteOrderWithConfirmation = function(orderId, orderNumber) {
+    window.showToast(`¿Estás seguro de eliminar el pedido #${orderNumber}? Esta acción no se puede deshacer. Haz clic de nuevo para confirmar.`, 'warning');
+    if (!window._deleteOrderConfirm) window._deleteOrderConfirm = {};
+    if (window._deleteOrderConfirm[orderId]) {
+        window.showToast('Eliminando pedido...', 'info');
+        window.deleteOrder(orderId);
+        window._deleteOrderConfirm[orderId] = false;
+    } else {
+        window._deleteOrderConfirm[orderId] = true;
+        setTimeout(() => { window._deleteOrderConfirm[orderId] = false; }, 4000);
+    }
+}
 // ============================================
 // SISTEMA DE PEDIDOS - Distribuidora MC (FIXED)
 // ============================================
