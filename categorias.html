@@ -92,13 +92,12 @@
 
     <script src="inventory.js"></script>
 <script>
-    <script>
-    // Sistema de notificación visual (toast)
-    window.showToast = function(message, type = 'info', duration = 3200) {
-        const toast = document.getElementById('toastNotification');
-        const toastMsg = document.getElementById('toastMessage');
-        if (!toast || !toastMsg) return;
-        toastMsg.textContent = message;
+// Sistema de notificación visual (toast)
+window.showToast = function(message, type = 'info', duration = 3200) {
+    const toast = document.getElementById('toastNotification');
+    const toastMsg = document.getElementById('toastMessage');
+    if (!toast || !toastMsg) return;
+    toastMsg.textContent = message;
         toast.style.display = 'block';
         toast.style.opacity = '1';
         toast.style.background = type === 'error'
