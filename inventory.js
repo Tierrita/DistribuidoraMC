@@ -168,40 +168,38 @@ function autoSuggestColor(categoryName) {
 }
 
 // Generar código automático para productos
-async function generateProductCode() {
-    let maxCode = 0;
-    
-    // Buscar el código más alto en el inventario actual
+async function generateProductCode(categorySlug) {
+    // Prefijo de 3 letras por categoría
+    const catPrefix = (categorySlug || '').substring(0, 3).toUpperCase();
+    let maxNumber = 0;
+    // Buscar el número más alto para la categoría
     inventory.forEach(product => {
-        const codeNumber = parseInt(product.code.replace(/\D/g, ''));
-        if (!isNaN(codeNumber) && codeNumber > maxCode) {
-            maxCode = codeNumber;
+        if (product.code && product.code.startsWith(catPrefix + '-')) {
+            const num = parseInt(product.code.split('-')[1]);
+            if (!isNaN(num) && num > maxNumber) maxNumber = num;
         }
     });
-    
     // Si usamos Supabase, también verificar en la base de datos
     if (useSupabase && window.supabaseDB) {
         try {
-            const { data, error } = await window.supabaseDB.supabase
+            const { data } = await window.supabaseDB.supabase
                 .from('productos')
                 .select('code')
-                .order('code', { ascending: false })
-                .limit(1);
-                
+                .order('code', { ascending: false });
             if (data && data.length > 0) {
-                const dbCodeNumber = parseInt(data[0].code.replace(/\D/g, ''));
-                if (!isNaN(dbCodeNumber) && dbCodeNumber > maxCode) {
-                    maxCode = dbCodeNumber;
-                }
+                data.forEach(d => {
+                    if (d.code && d.code.startsWith(catPrefix + '-')) {
+                        const num = parseInt(d.code.split('-')[1]);
+                        if (!isNaN(num) && num > maxNumber) maxNumber = num;
+                    }
+                });
             }
         } catch (error) {
             console.warn('No se pudo verificar códigos en Supabase:', error);
         }
     }
-    
-    // Generar el siguiente código
-    const nextNumber = maxCode + 1;
-    return `PROD${String(nextNumber).padStart(4, '0')}`;
+    const nextNum = maxNumber + 1;
+    return `${catPrefix}-${String(nextNum).padStart(4, '0')}`;
 }
 
 // Variables globales
@@ -301,7 +299,7 @@ async function loadDataFromSupabase() {
             category: prod.category,
             price: parseFloat(prod.price) || 0,
             stock: prod.stock || 0,
-            minStock: prod.min_stock || 0,
+            minStock: prod.min_stock != null ? prod.min_stock : 10,
             unit: prod.unit || 'kg'
         }));
         
@@ -871,7 +869,7 @@ async function handleProductFormSubmit(e) {
         category: document.getElementById('productCategory').value,
         price: parseFloat(document.getElementById('productPrice').value),
         stock: parseInt(document.getElementById('productStock').value),
-        minStock: parseInt(document.getElementById('productMinStock').value),
+        minStock: document.getElementById('productMinStock').value ? parseInt(document.getElementById('productMinStock').value) : 10,
         unit: 'kg'
     };
     
@@ -1007,7 +1005,7 @@ function renderInventory(productsToRender = inventory) {
     const urlParams = new URLSearchParams(window.location.search);
     let filteredProducts = productsToRender;
     if (urlParams.get('stock') === 'bajo') {
-        filteredProducts = productsToRender.filter(p => p.stock > 0 && p.stock <= (p.minStock || 10));
+        filteredProducts = productsToRender.filter(p => p.stock > 0 && p.stock <= 10);
     }
 
     if (filteredProducts.length === 0) {
@@ -1080,7 +1078,7 @@ function getStockStatus(stock, minStock) {
             icon: 'fas fa-times-circle',
             text: 'Sin Stock'
         };
-    } else if (stock <= minStock) {
+    } else if (stock > 0 && stock <= 10) {
         return {
             class: 'low-stock',
             icon: 'fas fa-exclamation-triangle',
