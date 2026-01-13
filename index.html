@@ -80,6 +80,10 @@
                     </div>
                 </div>
                 <div class="stat-card">
+        <section id="movimientosStockSection" class="card">
+          <h2>Movimientos Recientes de Stock</h2>
+          <div id="movimientosStockContainer"></div>
+        </section>
                     <div class="stat-card-link" id="lowStockCard" style="cursor:pointer; width:100%; display:flex; align-items:flex-start; gap:1rem;">
                         <div class="stat-icon stock">
                             <i class="fas fa-box-open"></i>
@@ -296,6 +300,7 @@
     <script src="supabase-config.js"></script>
     <!-- Dashboard Script -->
     <script src="dashboard.js"></script>
+        <script src="movimientos_stock.js"></script>
     <script src="historial_ventas.js"></script>
                 // Sistema de notificación visual (toast)
                 function showToast(message, type = 'info', duration = 3000) {

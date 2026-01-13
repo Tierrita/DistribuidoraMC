@@ -1,3 +1,48 @@
+// Validar stock antes de confirmar pedido y mostrar advertencia visual
+window.confirmarPedido = function() {
+    if (!pedidoActual || pedidoActual.items.length === 0) {
+        window.showToast('No hay productos en el pedido', 'warning');
+        return;
+    }
+    let stockInsuficiente = false;
+    for (const item of pedidoActual.items) {
+        const producto = window.inventory?.find(p => p.id === item.producto_id);
+        if (!window.validarStock ? (!producto || producto.stock < item.cantidad) : !window.validarStock(producto, item.cantidad)) {
+            stockInsuficiente = true;
+            if (window.mostrarError) {
+                window.mostrarError(`Stock insuficiente para "${item.nombre}". Disponible: ${producto ? producto.stock : 0}`);
+            } else {
+                window.showToast(`Stock insuficiente para "${item.nombre}". Disponible: ${producto ? producto.stock : 0}`, 'error');
+            }
+            if (window.highlightFilaProducto) {
+                window.highlightFilaProducto(item.producto_id, 'stock-alert');
+            } else {
+                const fila = document.querySelector(`tr[data-id='${item.producto_id}']`);
+                if (fila) {
+                    fila.classList.add('stock-alert');
+                    setTimeout(() => fila.classList.remove('stock-alert'), 1800);
+                }
+            }
+        }
+    }
+    if (stockInsuficiente) return;
+    pedidoActual.estado = 'confirmado';
+    // Crear venta asociada
+    ventaActual = {
+        id: Date.now(),
+        pedido_id: pedidoActual.id,
+        cliente_id: pedidoActual.cliente_id,
+        fecha: new Date().toISOString(),
+        total: calcularTotalPedido(),
+        items: pedidoActual.items.map(item => ({ ...item }))
+    };
+    ventaItems = ventaActual.items;
+    // Descontar stock en Supabase y actualizar UI
+    descontarStockVenta(ventaItems);
+    window.showToast('Pedido confirmado y venta creada', 'success');
+    actualizarPanelPedido();
+    actualizarPanelVenta();
+}
 // Doble confirmación para eliminar pedido
 window.deleteOrderWithConfirmation = function(orderId, orderNumber) {
     window.showToast(`¿Estás seguro de eliminar el pedido #${orderNumber}? Esta acción no se puede deshacer. Haz clic de nuevo para confirmar.`, 'warning');
@@ -453,4 +498,61 @@ function updateCartBadge() {
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     cartBadge.textContent = totalItems;
     cartBadge.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+
+    // Descontar stock en Supabase y actualizar UI
+    async function descontarStockVenta(items) {
+        if (!window.supabaseDB || !Array.isArray(items)) return;
+        let rollbackItems = [];
+        for (const item of items) {
+            try {
+                // Actualiza el stock en la tabla productos
+                await window.supabaseDB.supabase
+                    .from('productos')
+                    .update({ stock: window.supabaseDB.supabase.rpc('descontar_stock', { producto_id: item.producto_id, cantidad: item.cantidad }) })
+                    .eq('id', item.producto_id);
+                // Registrar movimiento en auditoría
+                await window.supabaseDB.supabase
+                    .from('movimientos_stock')
+                    .insert({
+                        producto_id: item.producto_id,
+                        cantidad: -item.cantidad,
+                        motivo: 'venta',
+                        referencia: ventaActual ? ventaActual.id : null,
+                        usuario: window.currentUser || 'sistema'
+                    });
+                rollbackItems.push(item);
+            } catch (err) {
+                window.showToast(`Error al descontar stock de ${item.nombre}`, 'error');
+                // Rollback: revertir movimientos realizados
+                for (const rbItem of rollbackItems) {
+                    await window.supabaseDB.supabase
+                        .from('productos')
+                        .update({ stock: window.supabaseDB.supabase.rpc('descontar_stock', { producto_id: rbItem.producto_id, cantidad: -rbItem.cantidad }) })
+                        .eq('id', rbItem.producto_id);
+                    await window.supabaseDB.supabase
+                        .from('movimientos_stock')
+                        .insert({
+                            producto_id: rbItem.producto_id,
+                            cantidad: rbItem.cantidad,
+                            motivo: 'rollback',
+                            referencia: ventaActual ? ventaActual.id : null,
+                            usuario: window.currentUser || 'sistema'
+                        });
+                }
+                window.showToast('Rollback realizado. Stock restaurado.', 'error');
+                return;
+            }
+        }
+        // Feedback visual: actualizar panel de productos y stock
+        actualizarStockUI();
+    }
+
+    function actualizarStockUI() {
+        // Refresca inventario y productos en la UI
+        if (typeof window.refrescarInventarioDesdeSupabase === 'function') {
+            window.refrescarInventarioDesdeSupabase();
+        }
+        window.showToast('Stock actualizado', 'info');
+    }
 }

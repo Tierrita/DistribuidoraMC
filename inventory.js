@@ -619,14 +619,22 @@ async function handleCategoryFormSubmit(e) {
     
     // 1. Validar nombre no vacío
     if (name.length === 0) {
-        alert('El nombre de la categoría no puede estar vacío');
+        if (window.mostrarError) {
+            window.mostrarError('El nombre de la categoría no puede estar vacío');
+        } else {
+            alert('El nombre de la categoría no puede estar vacío');
+        }
         document.getElementById('categoryName').focus();
         return;
     }
     
     // 2. Validar longitud del nombre
     if (name.length > 50) {
-        alert('El nombre de la categoría es demasiado largo (máximo 50 caracteres)');
+        if (window.mostrarError) {
+            window.mostrarError('El nombre de la categoría es demasiado largo (máximo 50 caracteres)');
+        } else {
+            alert('El nombre de la categoría es demasiado largo (máximo 50 caracteres)');
+        }
         document.getElementById('categoryName').focus();
         return;
     }
@@ -634,7 +642,11 @@ async function handleCategoryFormSubmit(e) {
     // 3. Validar nombre duplicado (solo para categorías nuevas o si cambió el nombre)
     if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.name !== name) {
         if (categories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-            alert('Ya existe una categoría con ese nombre');
+            if (window.mostrarError) {
+                window.mostrarError('Ya existe una categoría con ese nombre');
+            } else {
+                alert('Ya existe una categoría con ese nombre');
+            }
             document.getElementById('categoryName').focus();
             return;
         }
@@ -643,7 +655,11 @@ async function handleCategoryFormSubmit(e) {
     // 4. Validar slug duplicado
     if (!editingCategoryId || categories.find(c => c.id === editingCategoryId)?.slug !== slug) {
         if (categories.some(c => c.slug === slug)) {
-            alert('Ya existe una categoría similar con ese nombre');
+            if (window.mostrarError) {
+                window.mostrarError('Ya existe una categoría similar con ese nombre');
+            } else {
+                alert('Ya existe una categoría similar con ese nombre');
+            }
             document.getElementById('categoryName').focus();
             return;
         }
@@ -651,7 +667,11 @@ async function handleCategoryFormSubmit(e) {
     
     // 5. Validar longitud de descripción
     if (description.length > 200) {
-        alert('La descripción es demasiado larga (máximo 200 caracteres)');
+        if (window.mostrarError) {
+            window.mostrarError('La descripción es demasiado larga (máximo 200 caracteres)');
+        } else {
+            alert('La descripción es demasiado larga (máximo 200 caracteres)');
+        }
         document.getElementById('categoryDescription').focus();
         return;
     }
@@ -701,7 +721,11 @@ async function handleCategoryFormSubmit(e) {
                     saveCategoriestoStorage();
                 }
             }
-            alert('Categoría actualizada correctamente');
+            if (window.mostrarExito) {
+                window.mostrarExito('Categoría actualizada correctamente');
+            } else {
+                alert('Categoría actualizada correctamente');
+            }
         } else {
             // Agregar nueva categoría
             if (useSupabase) {
@@ -715,7 +739,11 @@ async function handleCategoryFormSubmit(e) {
                 categories.push(newCategory);
                 saveCategoriestoStorage();
             }
-            alert('Categoría agregada correctamente');
+            if (window.mostrarExito) {
+                window.mostrarExito('Categoría agregada correctamente');
+            } else {
+                alert('Categoría agregada correctamente');
+            }
         }
         
         renderCategories();
@@ -724,7 +752,11 @@ async function handleCategoryFormSubmit(e) {
         closeCategoryModal();
     } catch (error) {
         console.error('Error al guardar categoría:', error);
-        alert('Error al guardar la categoría');
+        if (window.mostrarError) {
+            window.mostrarError('Error al guardar la categoría');
+        } else {
+            alert('Error al guardar la categoría');
+        }
     }
 }
 
@@ -736,7 +768,11 @@ async function deleteCategory(categoryId) {
     const productsInCategory = inventory.filter(p => p.category === category.slug).length;
     
     if (productsInCategory > 0) {
-        alert(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`);
+        if (window.mostrarError) {
+            window.mostrarError(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`);
+        } else {
+            alert(`No se puede eliminar. Hay ${productsInCategory} productos en esta categoría`);
+        }
         return;
     }
     
@@ -1060,6 +1096,9 @@ function renderInventory(productsToRender = inventory) {
                         <button class="btn-icon btn-delete" onclick="deleteProduct(${product.id})" title="Eliminar">
                             <i class="fas fa-trash"></i>
                         </button>
+                        <button class="btn-icon btn-stock" onclick="reponerStock(${product.id})" title="Reponer Stock">
+                            <i class="fas fa-plus-circle"></i>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -1069,6 +1108,70 @@ function renderInventory(productsToRender = inventory) {
 
 // ============================================
 // FUNCIONES AUXILIARES
+// Filtro avanzado: productos sin movimiento reciente
+async function filtrarSinMovimiento() {
+    if (!window.supabaseDB) return;
+    try {
+        const { data: movimientos } = await window.supabaseDB.supabase
+            .from('movimientos_stock')
+            .select('producto_id')
+            .order('fecha', { ascending: false });
+        const movIds = new Set(movimientos.map(m => m.producto_id));
+        const sinMov = inventory.filter(p => !movIds.has(p.id));
+        renderInventory(sinMov);
+        window.showToast(`Mostrando ${sinMov.length} producto(s) sin movimiento reciente.`, 'info');
+    } catch (err) {
+        window.showToast('Error al filtrar productos sin movimiento', 'error');
+    }
+}
+// Reponer stock desde el botón rápido
+async function reponerStock(productId) {
+    const cantidad = prompt('¿Cuántas unidades quieres agregar al stock?', '1');
+    const n = parseInt(cantidad);
+    if (!n || n <= 0) {
+        window.showToast('Cantidad inválida', 'error');
+        return;
+    }
+    try {
+        await window.supabaseDB.supabase
+            .from('productos')
+            .update({ stock: window.supabaseDB.supabase.rpc('descontar_stock', { producto_id: productId, cantidad: -n }) })
+            .eq('id', productId);
+        await window.supabaseDB.supabase
+            .from('movimientos_stock')
+            .insert({
+                producto_id: productId,
+                cantidad: n,
+                motivo: 'reposición',
+                referencia: null,
+                usuario: window.currentUser || 'sistema'
+            });
+        window.showToast('Stock repuesto correctamente', 'success');
+        // Micro-feedback visual: highlight en la fila
+        const fila = document.querySelector(`tr[data-id='${productId}']`);
+        if (fila) {
+            fila.classList.add('stock-repuesto');
+            setTimeout(() => fila.classList.remove('stock-repuesto'), 1800);
+        }
+        refrescarInventarioDesdeSupabase();
+    } catch (err) {
+        window.showToast('Error al reponer stock', 'error');
+    }
+}
+// Refrescar inventario desde Supabase y actualizar vista
+async function refrescarInventarioDesdeSupabase() {
+    await loadDataFromSupabase();
+    renderInventory();
+    updateStats();
+    mostrarAlertaStockBajo();
+// Alerta automática por stock bajo
+function mostrarAlertaStockBajo() {
+    const bajos = inventory.filter(p => p.stock > 0 && p.stock <= 10);
+    if (bajos.length > 0) {
+        window.showToast(`¡Atención! ${bajos.length} producto(s) con stock bajo.`, 'warning');
+    }
+}
+}
 // ============================================
 
 function getStockStatus(stock, minStock) {

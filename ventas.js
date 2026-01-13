@@ -7,7 +7,11 @@ let cart = [];
 function addToCart(productId) {
     const product = inventory.find(p => p.id === productId);
     if (!product) {
-        window.showToast('Producto no encontrado', 'error');
+        if (window.mostrarError) {
+            window.mostrarError('Producto no encontrado');
+        } else {
+            window.showToast('Producto no encontrado', 'error');
+        }
         return;
     }
     const cartItem = cart.find(item => item.id === productId);
@@ -23,7 +27,11 @@ function addToCart(productId) {
         });
     }
     renderCart();
-    window.showToast('Producto sumado al carrito 🚀', 'success');
+    if (window.mostrarExito) {
+        window.mostrarExito('Producto sumado al carrito 🚀');
+    } else {
+        window.showToast('Producto sumado al carrito 🚀', 'success');
+    }
 }
 
 function updateCartQuantity(productId, delta) {
@@ -85,7 +93,11 @@ document.querySelectorAll('.btn-add-cart').forEach(btn => {
 
 async function guardarVentaSupabase(clienteId) {
     if (cart.length === 0) {
-        window.showToast('El carrito está vacío', 'error');
+        if (window.mostrarError) {
+            window.mostrarError('El carrito está vacío');
+        } else {
+            window.showToast('El carrito está vacío', 'error');
+        }
         return;
     }
     const venta = {
@@ -108,9 +120,17 @@ async function guardarVentaSupabase(clienteId) {
             productos: JSON.stringify(venta.productos)
         }]);
     if (error) {
-        window.showToast('Error al guardar la venta', 'error');
+        if (window.mostrarError) {
+            window.mostrarError('Error al guardar la venta');
+        } else {
+            window.showToast('Error al guardar la venta', 'error');
+        }
     } else {
-        window.showToast('Venta guardada en Supabase 🎉', 'success');
+        if (window.mostrarExito) {
+            window.mostrarExito('Venta guardada en Supabase 🎉');
+        } else {
+            window.showToast('Venta guardada en Supabase 🎉', 'success');
+        }
         cart = [];
         renderCart();
     }
